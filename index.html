@@ -363,7 +363,7 @@ function flushHold(){if(!HOLD)return;clearTimeout(HOLD.tm);const h=HOLD;HOLD=nul
 function snap(){return JSON.stringify({pd,bl,pu,mob,miss:[...miss],cur,last,pause,lastQ,lastT,bmode})}
 function restore(j){const o=JSON.parse(j);[[pd,o.pd],[bl,o.bl],[pu,o.pu],[mob,o.mob]].forEach(([a,b])=>{Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,b)});miss.clear();o.miss.forEach(x=>miss.add(x));cur=o.cur;last=o.last;pause=o.pause;lastQ=o.lastQ;lastT=o.lastT||null;bmode=o.bmode}
 function digitsOf(t){const n=norm(t).replace(/[、。,.・]/g,' ').trim();if(!n||!/^[0-9\s]+$/.test(n))return null;const out=[];
- n.split(/\s+/).forEach(tok=>{if(/^1[0-5]$/.test(tok)){out.push(+tok);return}for(let k=0;k<tok.length;k++){const c=tok[k];if(c==='0')continue;out.push(+c)}});return out} // 10〜15は2けたで1つ
+ const tk=n.split(/\s+/);tk.forEach((tok,ix)=>{if(tok==='10'&&/^[2-5]0$/.test(tk[ix+1]||'')){out.push(10+(+tk[ix+1][0]));tk[ix+1]='';return}if(/^[2-5]0$/.test(tok)){out.push(10+(+tok[0]));return}if(/^1[0-5]$/.test(tok)){out.push(+tok);return}for(let k=0;k<tok.length;k++){const c=tok[k];if(c==='0')continue;out.push(+c)}});return out} // 10〜15は2けたで1つ
 // キーボードの音声入力：話して少し止まったら、新しく増えた分だけを読む
 let txDone=0,txTimer=null;
 function txFlush(clear){clearTimeout(txTimer);const v=tx.value;if(v.length<txDone)txDone=0;const n=v.slice(txDone).trim();txDone=v.length;if(n)hear(n);if(clear||v.length>300){tx.value='';txDone=0}}
@@ -461,4 +461,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/15-23:00</div></body></html>
+</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/15-22:45</div></body></html>
