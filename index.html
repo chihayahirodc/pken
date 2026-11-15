@@ -170,7 +170,7 @@ body.stack table.ch td{height:22px}body.stack table.ch tr.num td{height:18px;fon
   <div class="row">
     <div class="card pdx">
       <div class="steps" id="steps"></div>
-      <div class="now">いま入れる場所<b id="now"></b><div id="nowp" class="nowp"></div></div>
+      <div class="now">いま入れる場所<b id="now"></b><div id="nowp" class="nowp"></div><button id="nxb" onclick="nextSeg()" style="display:none;margin-top:6px;padding:10px 18px;font-size:17px;font-weight:700;background:#3B82F6;color:#fff;border:0;border-radius:8px">次へ ▶</button></div>
       <div class="pad">
         <button onclick="put(1)">1</button><button onclick="put(2)">2</button><button onclick="put(3)">3</button><button onclick="put(4)">4</button><button onclick="put(5)">5</button>
         <button onclick="put(6)">6</button><button onclick="put(7)">7</button><button onclick="put(8)">8</button><button onclick="put(9)">9</button><button onclick="put(10)" class="w">10以上</button>
@@ -184,7 +184,7 @@ body.stack table.ch td{height:22px}body.stack table.ch tr.num td{height:18px;fon
         <button class="mic" id="mic" onclick="mic()">🎤 声で入力（押してから話す）</button>
         <div class="heard" id="heard"><i>聞き取った言葉がここに出ます</i></div>
         <div class="try"><input id="tx" autocomplete="off" placeholder="ここをタップ → キーボードの🎤を押して話す（文字でも可）" style="font-size:18px"><button onclick="txFlush(true)">入れる</button></div>
-        <div class="ex">話し方の例 ・数字だけ「3 2 4」→3点入って次へ ・「なし」→その歯を欠損にして次の歯へ<br>・<b>数字のすぐ後に「出血」</b>（例「3 2 出血 3」）→ その点に出血 ・あとからまとめて「左上7番 近心 出血」「右上6番 遠心と中央 出血」→ その面（いま終わった側）に出血 ・「左上7番 近心 排膿」→青丸（出血もなら二重丸）<br>・動揺度は「1」「2」「なし」で歯ごとに進む（上は左上8→右上8、下は右下8→左下8）・「戻る」</div>
+        <div class="ex">話し方の例 ・数字だけ「3 2 4」→3点入って次へ ・「なし」→その歯を欠損にして次の歯へ<br>・面を測り終えると止まるので、「左上7番 近心 出血」と出血部位を読み上げ →「次」で反対側の検査へ ・「左上7番 近心 出血」「右上6番 遠心と中央 出血」→ その面（いま終わった側）に出血 ・「左上7番 近心 排膿」→青丸（出血もなら二重丸）<br>・動揺度は「1」「2」「なし」で歯ごとに進む（上は左上8→右上8、下は右下8→左下8）・「戻る」</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px"><button onclick="showCmp()" style="flex:1;height:36px;border:none;border-radius:8px;background:var(--g);color:#fff;font-weight:600">前回と比べる（PCR・BoP）</button></div>
       <div class="stats" style="margin-top:8px">
@@ -234,7 +234,7 @@ function setMode(m){mode=m;document.body.classList.toggle('pq-only',m==1);docume
 function pusLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);pu[k]=!pu[k];draw()}
 const key=p=>p.q+p.t+p.surf+p.site;
 const pd={},bl={},miss=new Set(['UR8','UL8','LL8','LR8']),plq={},mob={};
-let cur=0,last=-1,missMode=false;
+let cur=0,last=-1,missMode=false,pause=null;
 // 試しの値（見本用）
 const demo='3233234223233243433223233223333';
 const PREV={pcr:42,bop:31,p4:9};
@@ -265,10 +265,13 @@ function showCmp(){
  cmp.style.display='block'}
 function tid(p){return p.q+p.t}
 function skip(i,dir=1){while(i>=0&&i<SEQ.length&&miss.has(tid(SEQ[i])))i+=dir;return Math.max(0,Math.min(SEQ.length,i))}
-function put(v){if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}last=cur;cur=skip(cur+1);draw()}
+function adv(from,to){const a=SEQ[from];if(a&&!a.mob&&(to>=SEQ.length||SEQ[to].si!==a.si))pause=a.si;cur=to}
+function nextSeg(){pause=null;draw();heardMsg('次の面の検査を始めます')}
+function heardMsg(m){document.getElementById('heard').innerHTML='<i>'+m+'</i>'}
+function put(v){if(pause!==null){heardMsg('出血部位を読み上げ中です。終わったら「次」（または 次へ▶）');return}if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}last=cur;adv(cur,skip(cur+1));draw()}
 function bleedLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);bl[k]=!bl[k];draw()}
-function back(){let i=cur-1;while(i>=0&&miss.has(tid(SEQ[i])))i--;if(i<0)return;cur=i;if(SEQ[i].mob)delete mob[tid(SEQ[i])];else delete pd[key(SEQ[i])];last=i-1;draw()}
-function missCur(){if(cur>=SEQ.length)return;const p=SEQ[cur];miss.add(tid(p));cur=skip(cur);draw()}
+function back(){pause=null;let i=cur-1;while(i>=0&&miss.has(tid(SEQ[i])))i--;if(i<0)return;cur=i;if(SEQ[i].mob)delete mob[tid(SEQ[i])];else delete pd[key(SEQ[i])];last=i-1;draw()}
+function missCur(){if(pause!==null||cur>=SEQ.length)return;const p=SEQ[cur],c=cur;miss.add(tid(p));last=c;adv(c,skip(cur));draw()}
 function toggleMiss(){missMode=!missMode;document.getElementById('mm').style.background=missMode?'#E0383E':'';document.getElementById('mm').textContent=missMode?'欠損を選ぶ（中）→ 終わる':'欠損を選ぶ'}
 function tapNum(id){if(!missMode)return;miss.has(id)?miss.delete(id):miss.add(id);cur=skip(cur);draw()}
 function jump(k){const i=SEQ.findIndex(p=>key(p)===k);if(i>=0&&!miss.has(tid(SEQ[i]))){cur=i;draw()}}
@@ -324,19 +327,17 @@ function hear(raw){
    const qq={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};
    while((m=re.exec(s))){if(m[1]){tooth=qq[m[1]]+norm(m[2]).trim()}else if(tooth){hits.push(tooth+surf+{近心:'M',中央:'C',遠心:'D'}[m[0]])}}
    if(tooth&&!hits.length)hits=['D','C','M'].map(x=>tooth+surf+x);
-   if(!tooth){ // 場所を言わない「出血」：数字のすぐ後に言えば、その直前に入れた点につける
-     const parts=norm(s).match(/出血|排膿|はいのう|10 |\d/g)||[];let n=0,marks=0;
-     parts.forEach(t=>{if(/\d/.test(t)){put(t==='10 '?10:+t);n++}else if(last>=0&&!SEQ[last].mob){const k=key(SEQ[last]);if(t==='出血')bl[k]=true;else pu[k]=true;marks++}});
-     document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s}」 → ${n?n+'点 入れて、':''}${marks?'直前の点に'+(/出血/.test(s)?'出血':'')+(/排膿|はいのう/.test(s)?'排膿':'')+' '+marks+'か所':'つける点がありません'}`;
-     LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s,msg:document.getElementById('heard').textContent});drawLog();draw();return}
    const B=/出血/.test(s),P=/排膿|はいのう/.test(s);hits.forEach(k=>{if(B)bl[k]=true;if(P)pu[k]=true});msg=hits.length?`${[B?'出血':'',P?'排膿':''].filter(x=>x).join('・')} ${hits.length}か所 つけました`:'場所が聞き取れませんでした';
- }else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
+ }else if(/^(次|つぎ)/.test(s.replace(/[\s、。]/g,''))){if(pause!==null){nextSeg();return}msg='いまは検査の途中です'}
+ else if(pause!==null&&!/戻る|もどる/.test(s)){msg='出血部位を読み上げてください。終わったら「次」'}
+ else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
  else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
  else if(/戻る|もどる/.test(s)){back();msg='ひとつ戻りました'}
  else{const d=norm(s).replace(/10 /g,'X').replace(/[^0-9X]/g,'').split('');d.forEach(c=>put(c==='X'?10:+c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
  document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s}」 → ${msg}`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s,msg:msg});drawLog();draw();
 }
-let rec=null,on=false;
+let rec=null,on=false;let RDONE={};
+function digitsOf(t){const n=norm(t).replace(/10 /g,'X').replace(/[\s、。,.]/g,'');if(!n||!/^[0-9X]+$/.test(n))return null;return n.split('').map(c=>c==='X'?10:+c)}
 // キーボードの音声入力：話して少し止まったら、新しく増えた分だけを読む
 let txDone=0,txTimer=null;
 function txFlush(clear){clearTimeout(txTimer);const v=tx.value;if(v.length<txDone)txDone=0;const n=v.slice(txDone).trim();txDone=v.length;if(n)hear(n);if(clear||v.length>300){tx.value='';txDone=0}}
@@ -345,8 +346,17 @@ tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();txFlush
 function mic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const b=document.getElementById('mic');
  if(!SR){document.getElementById('heard').innerHTML='<i>この画面では声の聞き取りが使えません（下の文字で試せます）</i>';return}
  if(on){rec.stop();on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）';return}
- rec=new SR();rec.lang='ja-JP';rec.continuous=true;rec.interimResults=false;
- rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)hear(e.results[i][0].transcript)};
+ rec=new SR();rec.lang='ja-JP';rec.continuous=true;rec.interimResults=true;RDONE={};
+ rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i],t=r[0].transcript,d=digitsOf(t);
+   if(d&&pause===null&&!(SEQ[cur]&&SEQ[cur].mob)){ // 数字だけの言葉は、聞こえた順にすぐ入れる（最後の1つは確定を待つ）
+     const upto=r.isFinal?d.length:Math.max(0,d.length-1),from=RDONE[i]||0;
+     for(let j=from;j<upto;j++)put(d[j]);RDONE[i]=Math.max(from,upto);
+     if(r.isFinal){const n=upto-from;document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${t.trim()}」 → ${d.length}点`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:t.trim(),msg:d.length+'点 入れました（すぐ入れ）'});drawLog()}
+     else document.getElementById('heard').innerHTML=`<i>聞き取り中</i>「${t.trim()}」`;
+   }else if(r.isFinal&&!(RDONE[i]>0))hear(t);
+   else if(r.isFinal&&RDONE[i]>0){/* 数字で始まり途中で言葉が入った：入れた分は残し、言葉はそのまま読む */hear(t.replace(/^[\s0-9０-９〇一二三四五六七八九]+/,''))}
+ }};
+ rec.onstart=()=>{RDONE={}};
  rec.onerror=e=>{const m={'not-allowed':'マイクが許可されていません。アドレス欄の左の「ぁあ」→「Webサイトの設定」→マイクを「許可」にしてください','service-not-allowed':'この画面では上の青いボタンのマイクが使えません。下の入力欄をタップして、キーボードの🎤で話してください','no-speech':'声が聞こえませんでした','audio-capture':'マイクが見つかりません','network':'ネットにつながっていません'}[e.error]||('エラー：'+e.error);document.getElementById('heard').innerHTML='<i>'+m+'</i>';LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:'（'+e.error+'）',msg:m});drawLog();if(e.error==='not-allowed'||e.error==='service-not-allowed'){try{tx.focus()}catch(x){};on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）'}};rec.onend=()=>{if(on){try{rec.start()}catch(x){}}};rec.start();on=true;b.classList.add('on');b.textContent='● 聞いています（押すと止まる）'}
 // 見本の途中の状態
 document.getElementById('dt').textContent='2026/11/13（金）';
@@ -401,6 +411,7 @@ function drawW(){wt.innerHTML=WC.map((c,i)=>'<span class="chip'+(i==wc?' on':'')
  wd.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const t=c.textContent;memo.value+=(memo.value&&!/[\n、。：]$/.test(memo.value)?(t.endsWith('：')?'\n':'。'):'')+t})}
 drawW();
 SEQ.forEach((p,i)=>{if(p.mob)return;const k=key(p);const v=pd[k]||3;PPD[k]=Math.max(1,v+([0,1,0,-1,0,0,1][i%7]))});
+const _draw=draw;draw=function(){_draw();const nb=document.getElementById('nxb');if(pause!==null){const nx=SEGS[pause+1];document.getElementById('now').textContent=SEGS[pause].name+' 終わり';document.getElementById('nowp').textContent='出血部位を読み上げ（例「左上7番 近心 出血」）→ 終わったら「次」'+(nx?'で '+nx.name+' へ':'');nb.style.display='inline-block'}else nb.style.display='none'};
 drawTools();setLay(1);cur=skip(0);drawRec();drawGL();draw();
 </script><div id="tbar" style="position:fixed;left:0;right:0;bottom:0;z-index:50;background:#FFF8E1;border-top:2px solid #F0B429;padding:6px 12px;font-size:13px;display:flex;gap:10px;align-items:center">
 <b style="color:#8A5A00">声の試し版</b><span>保存はされません。聞き取った言葉の記録だけ「送る」で院長のSheetに残せます（数字と部位だけ・名前なし）。</span>
