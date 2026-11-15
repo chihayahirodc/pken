@@ -266,7 +266,7 @@ function showCmp(){
 function tid(p){return p.q+p.t}
 function skip(i,dir=1){while(i>=0&&i<SEQ.length&&miss.has(tid(SEQ[i])))i+=dir;return Math.max(0,Math.min(SEQ.length,i))}
 function adv(from,to){const a=SEQ[from];if(a&&!a.mob&&(to>=SEQ.length||SEQ[to].si!==a.si))pause=a.si;cur=to}
-function nextSeg(){pause=null;draw();heardMsg('次の面の検査を始めます')}
+function nextSeg(){pause=null;bmode='出血';draw();heardMsg('次の面の検査を始めます')}
 function heardMsg(m){document.getElementById('heard').innerHTML='<i>'+m+'</i>'}
 function put(v){if(pause!==null){heardMsg('出血部位を読み上げ中です。終わったら「次」（または 次へ▶）');return}if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}last=cur;adv(cur,skip(cur+1));draw()}
 function bleedLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);bl[k]=!bl[k];draw()}
@@ -316,8 +316,16 @@ function set(id,txt,v,pv,u){document.getElementById(id).textContent=txt;const e=
 const KN={'〇':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'１':1,'２':2,'３':3,'４':4,'５':5,'６':6,'７':7,'８':8,'９':9};
 const KW=[['じゅう','10 '],['いち','1'],['さん','3'],['よん','4'],['ろく','6'],['なな','7'],['しち','7'],['はち','8'],['きゅう','9'],['ご','5'],['し','4'],['に','2']];
 function norm(s){s=s.replace(/ゼロ|れい/g,'0');s=s.replace(/[〇一二三四五六七八九１-９]/g,c=>KN[c]);KW.forEach(([a,b])=>{s=s.split(a).join(b)});return s}
+// 聞き間違いやすい言葉を直す
+const FIXW=[[/ひだり\s*うえ|左うえ|ひだり上/g,'左上'],[/みぎ\s*うえ|右うえ|みぎ上/g,'右上'],[/ひだり\s*した|左した|ひだり下/g,'左下'],[/みぎ\s*した|右した|みぎ下/g,'右下'],
+ [/近心|禁親|近親|金心|均心|禁心|筋心|きんしん|キンシン|金針|琴線|緊縮/g,'近心'],[/遠心|円心|延伸|遠信|演心|園芯|えんしん|エンシン|炎心|円陣/g,'遠心'],[/中央|ちゅうおう|チュウオウ|中尾|中王|中黄|中大/g,'中央'],
+ [/しゅっけつ|出結|出欠|出決/g,'出血'],[/はいのう|排膿|配納|背嚢|はいのー/g,'排膿'],[/(左上|右上|左下|右下)\s*の\s*/g,'$1'],[/ばん/g,'番']];
+function fixWords(t){FIXW.forEach(([r,w])=>{t=t.replace(r,w)});return t}
+let bmode='出血';
 function hear(raw){
- if(!raw)return;const s=raw.trim();let msg='';
+ if(!raw)return;const s0=raw.trim();let s=fixWords(s0);let msg='';
+ if(/(出血|排膿)/.test(s)&&/(行き|いき|行く|いく)/.test(s)){bmode=/排膿/.test(s)?'排膿':'出血';document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → これから「左上7番 近心」のように歯と場所だけで ${bmode} をつけます`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:bmode+'モード'});drawLog();return}
+ if(pause!==null&&/(右上|左上|右下|左下)/.test(s)&&!/(出血|排膿|動揺|行き|いき)/.test(s))s=s+' '+bmode;
  if(/動揺/.test(s)&&/(右上|左上|右下|左下)/.test(s)){
    const qq={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};const m=norm(s).match(/(右上|左上|右下|左下)\s*(\d)\s*番?.*?動揺度?\s*(\d)/);
    if(m){const v=+m[3];if(v)mob[qq[m[1]]+m[2]]=v;else delete mob[qq[m[1]]+m[2]];msg=`${m[1]}${m[2]}番 動揺度 ${v||'なし'}`}else msg='聞き取れませんでした';
@@ -334,7 +342,7 @@ function hear(raw){
  else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
  else if(/戻る|もどる/.test(s)){back();msg='ひとつ戻りました'}
  else{const d=norm(s).replace(/10 /g,'X').replace(/[^0-9X]/g,'').split('');d.forEach(c=>put(c==='X'?10:+c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
- document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s}」 → ${msg}`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s,msg:msg});drawLog();draw();
+ document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → ${msg}`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:(s!==s0?'['+s+'] ':'')+msg});drawLog();draw();
 }
 let rec=null,on=false;let RDONE={};
 function digitsOf(t){const n=norm(t).replace(/10 /g,'X').replace(/[\s、。,.]/g,'');if(!n||!/^[0-9X]+$/.test(n))return null;return n.split('').map(c=>c==='X'?10:+c)}
