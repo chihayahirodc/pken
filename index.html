@@ -266,7 +266,7 @@ function showCmp(){
 function tid(p){return p.q+p.t}
 function skip(i,dir=1){while(i>=0&&i<SEQ.length&&miss.has(tid(SEQ[i])))i+=dir;return Math.max(0,Math.min(SEQ.length,i))}
 function adv(from,to){const a=SEQ[from];if(a&&!a.mob&&(to>=SEQ.length||SEQ[to].si!==a.si))pause=a.si;cur=to}
-function nextSeg(){pause=null;bmode='出血';draw();heardMsg('次の面の検査を始めます')}
+function nextSeg(){const ps=pause;pause=null;bmode='出血';if(ps!==null&&cur<SEQ.length&&SEQ[cur].si===ps){let i=SEQ.findIndex(q=>q.si>ps);cur=i<0?SEQ.length:skip(i)}draw();heardMsg('次の面の検査を始めます')}
 function heardMsg(m){document.getElementById('heard').innerHTML='<i>'+m+'</i>'}
 function put(v){if(pause!==null){heardMsg('出血部位を読み上げ中です。終わったら「次」（または 次へ▶）');return}if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}last=cur;adv(cur,skip(cur+1));draw()}
 function bleedLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);bl[k]=!bl[k];draw()}
@@ -324,7 +324,7 @@ function fixWords(t){FIXW.forEach(([r,w])=>{t=t.replace(r,w)});return t}
 let bmode='出血';
 function hear(raw){
  if(!raw)return;const s0=raw.trim();let s=fixWords(s0);let msg='';
- if(/(出血|排膿)/.test(s)&&/(行き|いき|行く|いく)/.test(s)){bmode=/排膿/.test(s)?'排膿':'出血';document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → これから「左上7番 近心」のように歯と場所だけで ${bmode} をつけます`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:bmode+'モード'});drawLog();return}
+ if(/(出血|排膿)/.test(s)&&/(行き|いき|行く|いく)/.test(s)){bmode=/排膿/.test(s)?'排膿':'出血';if(pause===null){const lp=last>=0?SEQ[last]:SEQ[cur];if(lp&&!lp.mob)pause=lp.si;draw()}document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → これから「左上7番 近心」のように歯と場所だけで ${bmode} をつけます`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:bmode+'モード'});drawLog();return}
  if(pause!==null&&/(右上|左上|右下|左下)/.test(s)&&!/(出血|排膿|動揺|行き|いき)/.test(s))s=s+' '+bmode;
  if(/動揺/.test(s)&&/(右上|左上|右下|左下)/.test(s)){
    const qq={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};const m=norm(s).match(/(右上|左上|右下|左下)\s*(\d)\s*番?.*?動揺度?\s*(\d)/);
@@ -341,11 +341,12 @@ function hear(raw){
  else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
  else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
  else if(/戻る|もどる/.test(s)){back();msg='ひとつ戻りました'}
- else{const d=norm(s).replace(/10 /g,'X').replace(/[^0-9X]/g,'').split('');d.forEach(c=>put(c==='X'?10:+c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
+ else{const d=digitsOf(s)||norm(s).replace(/[^0-9]/g,'').split('').map(Number);d.forEach(c=>put(c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
  document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → ${msg}`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:(s!==s0?'['+s+'] ':'')+msg});drawLog();draw();
 }
 let rec=null,on=false;let RDONE={};
-function digitsOf(t){const n=norm(t).replace(/10 /g,'X').replace(/[\s、。,.]/g,'');if(!n||!/^[0-9X]+$/.test(n))return null;return n.split('').map(c=>c==='X'?10:+c)}
+function digitsOf(t){const n=norm(t).replace(/[、。,.・]/g,' ').trim();if(!n||!/^[0-9\s]+$/.test(n))return null;const out=[];
+ n.split(/\s+/).forEach(tok=>{if(/^1[0-5]$/.test(tok))out.push(+tok);else tok.split('').forEach(c=>out.push(+c))});return out} // 10〜15は2けたで1つ
 // キーボードの音声入力：話して少し止まったら、新しく増えた分だけを読む
 let txDone=0,txTimer=null;
 function txFlush(clear){clearTimeout(txTimer);const v=tx.value;if(v.length<txDone)txDone=0;const n=v.slice(txDone).trim();txDone=v.length;if(n)hear(n);if(clear||v.length>300){tx.value='';txDone=0}}
