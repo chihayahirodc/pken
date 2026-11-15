@@ -318,14 +318,15 @@ const KW=[['じゅう','10 '],['いち','1'],['さん','3'],['よん','4'],['ろ
 function norm(s){s=s.replace(/ゼロ|れい/g,'0');const T={いち:1,一:1,に:2,二:2,さん:3,三:3,よん:4,し:4,四:4,ご:5,五:5};s=s.replace(/(じゅう|十)\s*(いち|一|に|二|さん|三|よん|し|四|ご|五|[1-5１-５])/g,(m,a,b)=>' 1'+(T[b]||(+b.replace(/[１-５]/,c=>c.charCodeAt(0)-0xFF10)))+' ');s=s.replace(/十/g,' 10 ');s=s.replace(/[〇一二三四五六七八九１-９]/g,c=>KN[c]);KW.forEach(([a,b])=>{s=s.split(a).join(b)});return s}
 // 聞き間違いやすい言葉を直す
 const FIXW=[[/ひだり\s*うえ|左うえ|ひだり上/g,'左上'],[/みぎ\s*うえ|右うえ|みぎ上/g,'右上'],[/ひだり\s*した|左した|ひだり下/g,'左下'],[/みぎ\s*した|右した|みぎ下/g,'右下'],
- [/筋遠心|禁煙し|禁煙|近心|禁親|近親|金心|均心|禁心|筋心|筋親|きんしん|キンシン|金針|琴線|緊縮|検診|健診|献身|検針|けんしん/g,'近心'],[/遠心|円心|延伸|遠信|演心|園芯|えんしん|エンシン|炎心|円陣/g,'遠心'],[/中央|ちゅうおう|チュウオウ|中尾|中王|中黄|中大/g,'中央'],
- [/しゅっけつ|出結|出欠|出決/g,'出血'],[/([0-9０-９一二三四五六七八])\s*(晩|板|盤|ばん)/g,'$1番'],[/はんたいがわ|反対川|反対かわ/g,'反対側'],[/頬側|朝食|ちょうしょく|きょうそく|キョウソク|強側|胸側|教則|共則|協側|強速|供則|今日側|今日即|狭側/g,'頬側'],[/舌側|ぜっそく|ゼッソク|絶息|舌即|絶側/g,'舌側'],[/口蓋側|こうがいそく|口外側|校外側|公害側|郊外側|口外即|口蓋/g,'口蓋側'],[/(生き|逝き|いき|行き)(ます|まーす|ましょう)/g,'行きます'],[/はいのう|排膿|配納|背嚢|はいのー/g,'排膿'],[/(左上|右上|左下|右下)\s*の\s*/g,'$1'],[/ばん/g,'番']];
+ [/近遠心|きんえんしん|禁煙し|禁煙神|禁煙心|禁煙|筋遠心|近縁心|近縁/g,'近遠心'],[/近心|禁親|近親|金心|均心|禁心|筋心|筋親|きんしん|キンシン|金針|琴線|緊縮|検診|健診|献身|検針|けんしん/g,'近心'],[/(?<!近)遠心|返信|変身|返心|円心|延伸|遠信|演心|園芯|えんしん|エンシン|炎心|円陣/g,'遠心'],[/中央|ちゅうおう|チュウオウ|中尾|中王|中黄|中大/g,'中央'],
+ [/しゅっけつ|出結|出欠|出決/g,'出血'],[/([0-9０-９一二三四五六七八])\s*(晩|板|盤|ばん)/g,'$1番'],[/はんたいがわ|反対川|反対かわ/g,'反対側'],[/反対側\s*(行きます|行く|いきます)/g,'反対側 '],[/頬側|朝食|ちょうしょく|きょうそく|キョウソク|強側|胸側|教則|共則|協側|強速|供則|今日側|今日即|狭側/g,'頬側'],[/舌側|ぜっそく|ゼッソク|絶息|舌即|絶側/g,'舌側'],[/口蓋側|こうがいそく|口外側|校外側|公害側|郊外側|口外即|口蓋/g,'口蓋側'],[/(生き|逝き|いき|行き)(ます|まーす|ましょう)/g,'行きます'],[/はいのう|排膿|配納|背嚢|はいのー/g,'排膿'],[/(左上|右上|左下|右下)\s*の\s*/g,'$1'],[/ばん/g,'番']];
 function fixWords(t){FIXW.forEach(([r,w])=>{t=t.replace(r,w)});return t}
 let bmode='出血',lastQ=null;const QQ={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};
 function hear(raw){
  if(!raw)return;const s0=raw.trim();let s=fixWords(s0);let msg='';
  if(/(出血|排膿)/.test(s)&&/(行き|いき|行く|いく)/.test(s)){bmode=/排膿/.test(s)?'排膿':'出血';if(pause===null){const lp=last>=0?SEQ[last]:SEQ[cur];if(lp&&!lp.mob)pause=lp.si;draw()}if(pause!==null)lastQ=SEGS[pause].teeth[0][0];document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → これから「左上7番 近心」のように歯と場所だけで ${bmode} をつけます`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:bmode+'モード'});drawLog();return}
  if(pause!==null&&/(番|近心|中央|遠心|反対側|右上|左上|右下|左下)/.test(s)&&!/(出血|排膿|動揺|行き|いき)/.test(s))s=s+' '+bmode;
+ if(pause!==null&&/^\s*反対側\s*$/.test(s.replace(bmode,''))){if(lastQ)lastQ=lastQ[0]+(lastQ[1]==='L'?'R':'L');const nm={UR:'右上',UL:'左上',LR:'右下',LL:'左下'};document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → 反対側（${nm[lastQ]||''}）の出血を読みます`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:'反対側へ'});drawLog();return}
  if(/動揺/.test(s)&&/(右上|左上|右下|左下)/.test(s)){
    const qq={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};const m=norm(s).match(/(右上|左上|右下|左下)\s*(\d)\s*番?.*?動揺度?\s*(\d)/);
    if(m){const v=+m[3];if(v)mob[qq[m[1]]+m[2]]=v;else delete mob[qq[m[1]]+m[2]];msg=`${m[1]}${m[2]}番 動揺度 ${v||'なし'}`}else msg='聞き取れませんでした';
@@ -333,25 +334,25 @@ function hear(raw){
    const surfDef=pause!==null?SEGS[pause].surf:(SEQ[Math.max(0,last)].mob?'L':SEQ[Math.max(0,last)].surf);let surf=/頬側/.test(s)?'B':/口蓋/.test(s)?'P':/舌側/.test(s)?'L':surfDef;
    // 「左上7番 近心」「6番 近心」（前の歯と同じ側）「反対側 1番 近心」を順に読む
    const N='([1-8１-８一二三四五六七八]|いち|に|さん|よん|ご|ろく|なな|はち)';
-   const re=new RegExp('(右上|左上|右下|左下)\\s*'+N+'\\s*番?|'+N+'\\s*番|近心|中央|遠心|反対側','g');let m,tooth=null,hits=[],noSite=0;
+   const re=new RegExp('(右上|左上|右下|左下)\\s*'+N+'\\s*番?|'+N+'\\s*番|近遠心|近心|中央|遠心|反対側','g');let m,tooth=null,hits=[],noSite=0;
    while((m=re.exec(s))){
      if(m[0]==='反対側'){if(lastQ)lastQ=lastQ[0]+(lastQ[1]==='L'?'R':'L');continue}
      if(m[1]){if(tooth&&!tooth.hit)noSite++;lastQ=QQ[m[1]];tooth={id:lastQ+norm(m[2]).trim()};continue}
      if(m[3]){if(tooth&&!tooth.hit)noSite++;if(!lastQ&&last>=0)lastQ=SEQ[last].q;tooth=lastQ?{id:lastQ+norm(m[3]).trim()}:null;continue}
-     if(tooth){hits.push(tooth.id+surf+{近心:'M',中央:'C',遠心:'D'}[m[0]]);tooth.hit=1}}
+     if(tooth){(m[0]==='近遠心'?['M','D']:[{近心:'M',中央:'C',遠心:'D'}[m[0]]]).forEach(x=>hits.push(tooth.id+surf+x));tooth.hit=1}}
    if(tooth&&!tooth.hit)noSite++;
    const B=/出血/.test(s),P=/排膿|はいのう/.test(s);hits.forEach(k=>{if(B)bl[k]=true;if(P)pu[k]=true});msg=hits.length?`${[B?'出血':'',P?'排膿':''].filter(x=>x).join('・')} ${hits.length}か所 つけました`:'場所が聞き取れませんでした';
  }else if(/^(次|つぎ)/.test(s.replace(/[\s、。]/g,''))||(/(頬側|舌側|口蓋側)/.test(s)&&(/(行き|いき|行く|いく)/.test(s)||(pause!==null&&/^(頬側|舌側|口蓋側)$/.test(s.replace(/[\s、。]/g,''))))&&!/出血|排膿|はいのう|右上|左上|右下|左下/.test(s))){if(pause!==null){nextSeg();return}msg='いまは検査の途中です'}
  else if(pause!==null&&!/戻る|もどる/.test(s)){msg='出血部位を読み上げてください。終わったら「次」'}
  else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
  else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
- else if(/戻る|もどる/.test(s)){back();msg='ひとつ戻りました'}
+ else if(/戻る|もどる/.test(s)){const n=(s.match(/戻る|もどる/g)||[]).length;for(let k=0;k<n;k++)back();msg=n>1?n+'つ戻りました':'ひとつ戻りました'}
  else{const d=digitsOf(s)||norm(s).replace(/[^0-9]/g,'').split('').map(Number);d.forEach(c=>put(c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
  document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → ${msg}`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:(s!==s0?'['+s+'] ':'')+msg});drawLog();draw();
 }
 let rec=null,on=false;let RDONE={},RAPP={};
 function digitsOf(t){const n=norm(t).replace(/[、。,.・]/g,' ').trim();if(!n||!/^[0-9\s]+$/.test(n))return null;const out=[];
- n.split(/\s+/).forEach(tok=>{if(/^1[0-5]$/.test(tok))out.push(+tok);else tok.split('').forEach(c=>out.push(+c))});return out} // 10〜15は2けたで1つ
+ n.split(/\s+/).forEach(tok=>{if(/^1[0-5]$/.test(tok)){out.push(+tok);return}for(let k=0;k<tok.length;k++){const c=tok[k];if(c==='0')continue;out.push(+c)}});return out} // 10〜15は2けたで1つ
 // キーボードの音声入力：話して少し止まったら、新しく増えた分だけを読む
 let txDone=0,txTimer=null;
 function txFlush(clear){clearTimeout(txTimer);const v=tx.value;if(v.length<txDone)txDone=0;const n=v.slice(txDone).trim();txDone=v.length;if(n)hear(n);if(clear||v.length>300){tx.value='';txDone=0}}
@@ -445,4 +446,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/15-22:20</div></body></html>
+</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/15-22:30</div></body></html>
