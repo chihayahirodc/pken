@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P検アプリ 声の試し版</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<style>
+:root{--g:#1E2A44;--g2:#3B82F6;--gl:#EEF2F8;--t:#333;--line:#cfd6e2;--red:#E0383E;--bg:#f4f6f9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:14px}
+header{background:var(--g);color:#fff;display:flex;align-items:center;gap:14px;padding:8px 14px}
+header h1{font-size:17px;margin:0;font-weight:600}
+header .f{background:#ffffff1f;border-radius:8px;padding:5px 10px;font-size:14px}
+header .f b{font-size:16px;letter-spacing:1px}
+header .sp{flex:1}
+.wrap{padding:10px 12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+/* chart */
+table.ch{border-collapse:collapse;width:100%;table-layout:fixed}
+table.ch td{border:1px solid var(--line);height:26px;text-align:center;padding:0;font-size:14px;font-weight:600;position:relative}
+table.ch td.lb{width:62px;font-size:11px;font-weight:500;color:#667;background:#fafbfd;text-align:right;padding-right:5px;line-height:1.1}
+table.ch td.tb{border-left:2px solid #9aa6b8}
+table.ch td.cell{cursor:pointer}
+table.ch td.cell.hi{color:var(--red)}
+table.ch td.cell.bl::after{content:"";position:absolute;left:50%;top:50%;width:21px;height:21px;margin:-11px 0 0 -11px;border:2px solid var(--red);border-radius:50%}
+table.ch td.cell.cur{outline:3px solid var(--g2);outline-offset:-3px;background:#e8f1ff}
+table.ch td.cell.pu::before{content:"";position:absolute;left:50%;top:50%;width:21px;height:21px;margin:-11px 0 0 -11px;border:2px solid #2563EB;border-radius:50%}
+table.ch td.cell.bl.pu::before{width:15px;height:15px;margin:-8px 0 0 -8px}
+table.ch td.mob.cur{outline:3px solid var(--g2);outline-offset:-3px;background:#e8f1ff}
+.mode{display:flex;background:#ffffff1f;border-radius:8px;overflow:hidden}.mode span{padding:5px 12px;cursor:pointer}.mode span.on{background:#fff;color:var(--g);font-weight:600}
+body.pq-only .pdx{display:none!important}
+body.pq-only .row{grid-template-columns:260px 1fr}body.pq-only .stats{grid-template-columns:1fr}body.pq-only .st b{font-size:40px}
+table.ch td.mob{cursor:pointer;color:var(--g)}
+table.ch tr.num td{height:24px;border:none;font-size:16px;color:var(--g);cursor:pointer}
+table.ch tr.num td.lb{background:none;color:var(--g);font-size:15px}
+table.ch td.re{width:30px;text-align:center;padding:0}
+table.ch td.miss{background:repeating-linear-gradient(45deg,#eceff4,#eceff4 4px,#f7f8fa 4px,#f7f8fa 8px)!important;color:transparent!important}
+table.ch tr.num td.missn{color:#bbb;text-decoration:line-through}
+td.pq{padding:0!important;cursor:pointer}
+td.pq svg{display:block;width:100%;height:26px}
+td.pq polygon{fill:#fff;stroke:#c7cfdb;stroke-width:1}
+td.pq polygon.on{fill:#F2A93B}
+.mid{height:6px}
+/* bottom */
+.row{display:grid;grid-template-columns:330px 1fr 300px;gap:10px;margin-top:10px}
+.now{font-size:13px;color:#667}
+.now b{display:block;font-size:20px;color:var(--g);margin:2px 0 6px}
+.steps{display:flex;gap:4px;margin-bottom:8px}
+.steps span{flex:1;text-align:center;font-size:11px;padding:4px 0;border-radius:6px;background:var(--gl);color:#667}
+.steps span.on{background:var(--g);color:#fff}
+.steps span.done{background:#cfe0fb;color:var(--g)}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pad button{height:48px;font-size:22px;font-weight:600;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--g)}
+.pad button.w{font-size:14px}
+.pad button.r{background:#fdecec;color:var(--red);border-color:#f3c2c4}
+.pad button.k{background:var(--gl)}
+.voice{margin-top:4px}
+.mic{width:100%;height:56px;border:none;border-radius:12px;background:var(--g2);color:#fff;font-size:17px;font-weight:600}
+.mic.on{background:var(--red)}
+.heard{margin-top:6px;min-height:40px;background:var(--gl);border-radius:8px;padding:6px 8px;font-size:13px}
+.heard i{color:#889;font-style:normal;font-size:11px;display:block}
+.try{display:flex;gap:6px;margin-top:6px}
+.try input{flex:1;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:14px}
+.try button{height:36px;border:none;border-radius:8px;background:var(--g);color:#fff;padding:0 12px}
+.ex{font-size:11px;color:#778;margin-top:6px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.st{background:var(--gl);border-radius:10px;padding:8px;text-align:center}
+.st small{display:block;font-size:11px;color:#667}
+.st b{font-size:26px;color:var(--g)}
+.st em{display:block;font-style:normal;font-size:11px;color:#889}
+.st em.up{color:var(--red)} .st em.dn{color:#1a9a55}
+.grp{margin-bottom:7px}
+.grp>small{display:block;font-size:11px;color:#667;margin-bottom:3px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--line);border-radius:16px;padding:5px 11px;font-size:13px;background:#fff;cursor:pointer;user-select:none}
+.chip.on{background:var(--g);color:#fff;border-color:var(--g)}
+.save{width:100%;height:52px;border:none;border-radius:12px;background:var(--g);color:#fff;font-size:16px;font-weight:600;margin-top:6px}
+.note{font-size:11px;color:#889;margin-top:4px;text-align:center}
+.lg{display:flex;gap:12px;font-size:11px;color:#778;margin-top:5px}
+.lg i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:3px}
+.lg u{display:inline-block;width:10px;height:10px;background:#F2A93B;margin-right:3px;text-decoration:none}
+
+#sheet{background:#fff;width:1100px;margin:0 auto;padding:22px 26px;color:#222;font-size:13px}
+#sheet h2{font-size:18px;margin:0 0 10px;display:flex;justify-content:space-between;border-bottom:2px solid #1E2A44;padding-bottom:6px}
+#sheet .bx{display:grid;grid-template-columns:215px 1fr;gap:12px}
+#sheet .lf div{border-bottom:1px solid #ddd;padding:4px 0}
+#sheet .lf b{display:inline-block;width:70px;color:#555;font-weight:500}
+#sheet table{border-collapse:collapse;width:100%;table-layout:fixed}
+#sheet td{border:1px solid #bbb;height:21px;text-align:center;font-size:12px;position:relative;padding:0}
+#sheet td.l{width:56px;font-size:10px;color:#555;text-align:right;padding-right:4px;border-color:#ddd}
+#sheet td.t{border-left:1.6px solid #555}
+#sheet td.h{color:#E0383E;font-weight:700}
+#sheet td.c::after{content:"";position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-9px 0 0 -9px;border:1.5px solid #E0383E;border-radius:50%}
+#sheet td.u::before{content:"";position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-9px 0 0 -9px;border:1.5px solid #2563EB;border-radius:50%}#sheet td.c.u::before{width:11px;height:11px;margin:-6.5px 0 0 -6.5px}
+#sheet td.x{background:#eee;color:transparent}
+#sheet tr.n td{border:none;font-size:14px;font-weight:600;height:20px}
+#sheet td.p svg{display:block;width:100%;height:21px}#sheet td.p polygon{fill:#fff;stroke:#bbb;stroke-width:1}#sheet td.p polygon.on{fill:#F2A93B}
+#sheet .wk{margin-top:10px;border:1px solid #bbb;padding:8px 10px;min-height:60px}
+#sheet .wk small{display:block;color:#555;margin-bottom:3px}
+#sheet .ft{display:flex;justify-content:space-between;margin-top:6px;color:#555}
+.sub{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 4px 10px;padding-left:8px;border-left:3px solid var(--g2)}
+.sub .chip{padding:3px 9px;font-size:12px;background:#F4F6F9}.sub .chip.on{background:var(--g2);border-color:var(--g2);color:#fff}.sub b{font-size:11px;color:#667;align-self:center;margin-right:2px}
+table.ch td.cell s{position:absolute;left:2px;top:0;font-size:9px;color:#9aa3b2;text-decoration:none;font-weight:500}
+body.noprev table.ch td.cell s{display:none}
+table.ch td.cell.wr{background:#fff0f0}table.ch td.cell.bt{background:#eefaf2}
+body.noprev table.ch td.cell.wr,body.noprev table.ch td.cell.bt{background:none}
+#cmp{display:none;position:fixed;inset:0;background:#0008;overflow:auto;padding:20px}
+#cmp .in{background:#fff;max-width:1100px;margin:0 auto;border-radius:14px;padding:16px 20px}
+.tr{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:10px 0 14px}
+.tr .bx{background:var(--gl);border-radius:10px;padding:10px 12px}
+.tr h4{margin:0 0 8px;font-size:13px;color:var(--g)}
+.bars{display:flex;align-items:flex-end;gap:10px;height:120px}
+.bars div{flex:1;text-align:center;font-size:11px;color:#667}
+.bars i{display:block;background:#9db6e0;border-radius:4px 4px 0 0;margin:0 auto 3px;width:70%}
+.bars div.now i{background:var(--g)} .bars b{display:block;font-size:13px;color:var(--g)}
+.pq2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.pq2 h4{margin:0 0 4px;font-size:13px;color:var(--g)}
+table.ch tr.prv td{height:17px;font-size:11px;font-weight:500;color:#8a94a6;background:#f7f8fb;position:relative}
+table.ch tr.prv td.lb{font-size:10px;color:#9aa3b2}
+table.ch tr.prv td.p4{color:#e0383e99}
+table.ch tr.prv td.pb::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-8px 0 0 -8px;border:1.5px solid #e0383e88;border-radius:50%}
+table.ch tr.prv td.pon{background:#fff3c4;color:#333;font-weight:700}
+body.noprev table.ch tr.prv{display:none}
+.nowp{font-size:15px;color:#667;margin:-2px 0 8px}.nowp span{display:inline-block;min-width:24px;text-align:center;font-weight:700;color:#444;position:relative}
+.nowp span.p4{color:var(--red)}.nowp span.pb::after{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-11px 0 0 -11px;border:1.5px solid var(--red);border-radius:50%}
+.pcard{display:none;margin-bottom:8px;background:#f7f8fb}
+body.stack .pcard{display:block}body.noprev .nowp{display:none} body.stack table.ch tr.prv{display:none}
+.pcard .hd{display:flex;gap:16px;align-items:baseline;margin-bottom:4px;font-size:13px;color:#667}.pcard .hd b{color:var(--g);font-size:14px}
+table.pc{border-collapse:collapse;width:100%;table-layout:fixed}
+table.pc td{border:1px solid #dde2ea;height:18px;text-align:center;font-size:11px;color:#556;position:relative;padding:0}
+table.pc td.lb{width:62px;font-size:10px;color:#889;text-align:right;padding-right:5px;border-color:#eee}
+table.pc td.re{width:30px;border:none}
+table.pc td.tb{border-left:1.6px solid #aab3c2}
+table.pc td.h{color:#e0383e;font-weight:600}
+table.pc td.b::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-8px 0 0 -8px;border:1.5px solid #e0383e;border-radius:50%}
+table.pc td.on{background:#fff3c4;color:#222;font-weight:700}
+table.pc td.x{background:#eceff4;color:transparent}
+table.pc tr.n td{border:none;font-size:12px;font-weight:600;color:var(--g);height:16px}
+table.pc td.pq svg{display:block;width:100%;height:18px}table.pc td.pq polygon{fill:#fff;stroke:#ccd;stroke-width:1}table.pc td.pq polygon.on{fill:#F2A93B}
+.lay{display:flex;background:#ffffff1f;border-radius:8px;overflow:hidden;font-size:13px}.lay span{padding:5px 10px;cursor:pointer}.lay span.on{background:#fff;color:var(--g);font-weight:600}
+header{gap:8px!important;padding:6px 10px!important;flex-wrap:nowrap}header h1{font-size:15px!important;white-space:nowrap}header .f{font-size:12px!important;padding:4px 7px!important;white-space:nowrap}header .f b{font-size:14px!important}
+header input[type=time]{width:96px!important;font-size:13px!important}.mode,.lay{font-size:12px!important;white-space:nowrap}.mode span,.lay span{padding:4px 8px!important}
+body.stack table.ch td{height:22px}body.stack table.ch tr.num td{height:18px;font-size:14px}body.stack td.pq svg{height:22px}
+.rec{border:1.5px solid #cfe0fb;background:#f6f9ff;border-radius:10px;padding:8px 10px;margin-bottom:8px}
+.rh{display:flex;gap:10px;align-items:baseline;margin-bottom:6px}.rh b{color:var(--g)}.rh small{font-size:11px;color:#778}
+.sug{display:flex;flex-wrap:wrap;gap:6px}
+.sg{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;min-width:150px}
+.sg b{display:block;font-size:13px;color:var(--g)}.sg small{display:block;font-size:11px;color:#778;margin-top:1px}
+.sg.on{background:var(--g2);border-color:var(--g2)}.sg.on b,.sg.on small{color:#fff}
+.sg.on b:before{content:"✓ "}
+.sg{position:relative;padding-left:58px!important;min-height:52px}.sg .ic{display:block;position:absolute;left:6px;top:6px;width:44px;height:40px;background:#fff;border-radius:8px;border:1px solid #dde}.sg .ic svg{width:100%;height:100%}
+.prevrec{font-size:12px;margin-bottom:6px;color:#555}.prevrec span{display:inline-block;border:1px solid var(--line);border-radius:14px;padding:2px 10px;margin-left:4px;cursor:pointer;background:#fff}.prevrec span.on{background:var(--g);color:#fff}
+</style></head><body>
+<header>
+  <h1>歯周検査</h1>
+  <div class="f">カルテ番号 <b id="kno">1234</b></div>
+  <div class="f" id="dt"></div>
+  <div class="f">時間 <input type="time" id="t1" value="18:10" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px">〜<input type="time" id="t2" value="18:40" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px"></div>
+  <div class="f">担当 <b>内田</b></div>
+  <div class="mode" id="mode"><span class="on" onclick="setMode(0)">検査あり</span><span onclick="setMode(1)">プラークだけ</span></div>
+  <div class="lay" id="lay"><span style="opacity:.8;cursor:default">前回</span><span onclick="setLay(0)">表示しない</span><span onclick="setLay(1)">行で</span><span onclick="setLay(2)">上下</span></div>
+  <div class="sp"></div>
+  <div class="f" id="mm" onclick="toggleMiss()" style="cursor:pointer">欠損を選ぶ</div>
+</header>
+<div class="wrap">
+  <div class="card pcard pdx" id="pcard"></div>
+  <div class="card">
+    <table class="ch" id="up"></table>
+    <div class="mid"></div>
+    <table class="ch" id="lo"></table>
+    <div class="lg"><span><b style="display:inline-block;width:16px;height:16px;border:2px solid var(--red);border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 出血は赤丸・<b style="display:inline-block;width:16px;height:16px;border:2px solid #2563EB;border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 排膿は青丸・両方は二重丸</span><span style="color:var(--red);font-weight:600">4</span><span>=4mm以上は赤字</span><span><u></u>プラーク（4面をタップ）</span><span>動揺度は数字をタップで 0→1→2→3</span><span>歯の番号タップ＝欠損（「欠損を選ぶ」中）</span></div>
+  </div>
+  <div class="row">
+    <div class="card pdx">
+      <div class="steps" id="steps"></div>
+      <div class="now">いま入れる場所<b id="now"></b><div id="nowp" class="nowp"></div></div>
+      <div class="pad">
+        <button onclick="put(1)">1</button><button onclick="put(2)">2</button><button onclick="put(3)">3</button><button onclick="put(4)">4</button><button onclick="put(5)">5</button>
+        <button onclick="put(6)">6</button><button onclick="put(7)">7</button><button onclick="put(8)">8</button><button onclick="put(9)">9</button><button onclick="put(10)" class="w">10以上</button>
+        <button class="r w" onclick="bleedLast()">出血</button><button class="w" onclick="pusLast()" style="background:#e8efff;color:#2563EB;border-color:#bcd0fb">排膿</button>
+        <button class="k w" onclick="missCur()">欠損</button>
+        <button class="k w" onclick="back()" style="grid-column:span 2">← 戻る</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="voice pdx">
+        <button class="mic" id="mic" onclick="mic()">🎤 声で入力（押してから話す）</button>
+        <div class="heard" id="heard"><i>聞き取った言葉がここに出ます</i></div>
+        <div class="try"><input id="tx" autocomplete="off" placeholder="ここをタップ → キーボードの🎤を押して話す（文字でも可）" style="font-size:18px"><button onclick="txFlush(true)">入れる</button></div>
+        <div class="ex">話し方の例 ・数字だけ「3 2 4」→3点入って次へ ・「なし」→その歯を欠損にして次の歯へ<br>・「左上7番 近心 出血」「右上6番 遠心と中央 出血」→ その面（いま終わった側）に出血 ・「左上7番 近心 排膿」→青丸（出血もなら二重丸）<br>・動揺度は「1」「2」「なし」で歯ごとに進む（上は左上8→右上8、下は右下8→左下8）・「戻る」</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button onclick="showCmp()" style="flex:1;height:36px;border:none;border-radius:8px;background:var(--g);color:#fff;font-weight:600">前回と比べる（PCR・BoP）</button></div>
+      <div class="stats" style="margin-top:8px">
+        <div class="st"><small>PCR（プラーク）</small><b id="pcr">–</b><em id="pcr0"></em></div>
+        <div class="st pdx"><small>BoP（出血）</small><b id="bop">–</b><em id="bop0"></em></div>
+        <div class="st pdx"><small>4mm以上</small><b id="p4">–</b><em id="p40"></em></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="grp"><small>染め出し</small><div class="chips" data-one><span class="chip on">赤</span><span class="chip">2TONE</span></div></div>
+      <div class="grp"><small>歯みがき</small><div class="chips"><span class="chip">起床後</span><span class="chip on">朝</span><span class="chip">昼</span><span class="chip on">夜</span><span class="chip">就寝前</span></div></div>
+      <div class="grp" id="g3"><small>清掃用具（患者さん）</small><div class="chips" id="c3"></div></div>
+      <div class="grp" id="g4"><small>使用器具（医院）</small><div class="chips" id="c4"></div></div>
+      <div class="grp"><small>LA etc.</small><div class="chips"><span class="chip">LA</span><span class="chip">＋メモ</span></div></div>
+      <button class="save">保存して Note（サブカルテ）へ</button>
+      <div class="note">見本です。保存はまだ動きません</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:10px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><b style="color:var(--g)">歯科衛生士業務記録</b><small style="color:#889">よく使う言葉をタップすると下に入ります（言葉は設定で変えられます）</small><div style="flex:1"></div><button onclick="showRec()" style="height:38px;border:1px solid var(--g);background:#fff;color:var(--g);border-radius:8px;padding:0 14px;font-weight:600">Noteに貼る記録を見る</button></div>
+    <div class="chips" id="wt" style="margin-bottom:5px"></div><div class="chips" id="wd" style="margin-bottom:6px;max-height:120px;overflow:auto"></div>
+    <div class="rec"><div class="rh"><b>おすすめの清掃用具・物販</b><small>検査の結果から候補を出します。DHがタップしたものだけ業務記録と患者さん用の紙に入ります（値段は載せません）</small></div>
+      <div id="prevrec" class="prevrec"></div><div id="sug" class="sug"></div></div>
+    <textarea id="memo" style="width:100%;height:64px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;font-family:inherit">指導内容：プラークの付着状況と歯肉の状態を説明し、バス法を指導。歯間ブラシの使い方を説明</textarea>
+  </div>
+</div>
+<div id="cmp"><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px;color:var(--g)">前回との比較　カルテ番号 1234</b><button onclick="cmp.style.display='none'" style="height:36px;border:none;border-radius:8px;padding:0 16px;background:var(--gl)">閉じる</button></div><div class="tr" id="trend"></div><div class="pq2" id="pq2"></div></div></div>
+<div id="gp" style="display:none;position:fixed;inset:0;background:#0007;padding:60px 20px"><div style="background:#fff;max-width:760px;margin:0 auto;border-radius:14px;padding:14px 18px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:17px;color:var(--g)">物販リストから選ぶ</b><button onclick="gp.style.display='none'" style="height:34px;border:none;border-radius:8px;padding:0 16px;background:var(--gl)">閉じる</button></div><div id="gl"></div><div style="font-size:11px;color:#889;margin-top:6px">品目は仮です。院長の物販リストから作ります（値段はここにも患者さん用の紙にも出しません）</div></div></div>
+<div id="rv" style="display:none;position:fixed;inset:0;background:#0008;overflow:auto;padding:20px"><div style="text-align:right;max-width:1100px;margin:0 auto 6px"><button onclick="rv.style.display='none'" style="height:36px;border:none;border-radius:8px;padding:0 16px">閉じる</button></div><div id="sheet"></div></div>
+<script>
+const Q={UR:'右上',UL:'左上',LR:'右下',LL:'左下'};
+const SN={D:'遠心',C:'中央',M:'近心'}, SF={B:'頬側',P:'口蓋側',L:'舌側'};
+const range=(a,b)=>{const r=[];if(a<=b)for(let i=a;i<=b;i++)r.push(i);else for(let i=a;i>=b;i--)r.push(i);return r};
+// 測る順番（院長 11/13）
+const SEGS=[
+ {name:'上 口蓋側',surf:'P',teeth:[...range(8,1).map(t=>['UL',t,'DCM']),...range(1,8).map(t=>['UR',t,'MCD'])]},
+ {name:'上 頬側',surf:'B',teeth:[...range(8,1).map(t=>['UR',t,'DCM']),...range(1,8).map(t=>['UL',t,'MCD'])]},
+ {name:'下 頬側',surf:'B',teeth:[...range(8,1).map(t=>['LR',t,'DCM']),...range(1,8).map(t=>['LL',t,'MCD'])]},
+ {name:'下 舌側',surf:'L',teeth:[...range(8,1).map(t=>['LL',t,'DCM']),...range(1,8).map(t=>['LR',t,'MCD'])]},
+];
+const SEQ=[];SEGS.forEach((s,si)=>s.teeth.forEach(([q,t,o])=>o.split('').forEach(x=>SEQ.push({si,q,t,surf:s.surf,site:x}))));
+// 動揺度（院長 11/13）：上は左上8→右上8、下は右下8→左下8。1・2・3で記載
+SEGS.push({name:'動揺度',surf:'X'});
+[...range(8,1).map(t=>['UL',t]),...range(1,8).map(t=>['UR',t]),...range(8,1).map(t=>['LR',t]),...range(1,8).map(t=>['LL',t])].forEach(([q,t])=>SEQ.push({si:4,q,t,surf:'X',site:'',mob:1}));
+let pu={},mode=0;
+function setMode(m){mode=m;document.body.classList.toggle('pq-only',m==1);document.querySelectorAll('#mode span').forEach((e,i)=>e.classList.toggle('on',i==m));draw()}
+function pusLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);pu[k]=!pu[k];draw()}
+const key=p=>p.q+p.t+p.surf+p.site;
+const pd={},bl={},miss=new Set(['UR8','UL8','LL8','LR8']),plq={},mob={};
+let cur=0,last=-1,missMode=false;
+// 試しの値（見本用）
+const demo='3233234223233243433223233223333';
+const PREV={pcr:42,bop:31,p4:9};
+// 前回の検査（見本用の作り値）
+const PPD={};const PBL={UR7BD:1,UR6PM:1,UR6PC:1,UL6BD:1,UL7PM:1,LR7BD:1,LR7BC:1,LR6LD:1,LL6BM:1,LL7LD:1,UR3PM:1,UL4BC:1};const HIST=[['2026/2/10',58,40,14],['2026/5/12',49,35,11],['2026/8/20',42,31,9]];
+const PPLQ={UR7:{a:1,b:1},UR6:{a:1,c:1},UR5:{a:1},UL6:{a:1,b:1},UL7:{a:1,b:1,c:1},LR7:{b:1,c:1},LR6:{a:1},LL1:{a:1,b:1},LL6:{a:1,b:1,c:1},LL7:{a:1},UR1:{c:1},UL2:{c:1}};
+const TOOLS=[['歯ブラシ',['やわらかめ','ふつう','かため']],['フロス',['ホルダー型','ロール型']],['ワンタフトブラシ'],['歯間ブラシ',['SSSS','SSS','SS','S','M','L'],['5往復','10往復','15往復','20往復']],['電動歯ブラシ'],['舌ブラシ'],['歯みがき剤（フッ素入り）'],['洗口剤']];
+const INSTR=['エアスケーラー','超音波スケーラー','ハンドスケーラー','P20','電動歯ブラシ','歯間ブラシ','ペリオフィール','PMTC（ブラシ・ラバーカップ）','研磨ペースト','フッ化物塗布','エアフロー'];
+const T3={'歯ブラシ':['ふつう'],'歯間ブラシ':['SS','10往復']},T4=new Set(['エアスケーラー','ペリオフィール']);
+function drawTools(){
+ c3.innerHTML=TOOLS.map(([n,a,b])=>{const on=n in T3;let h='<span class="chip'+(on?' on':'')+'" onclick="tg3(\''+n+'\')">'+n+'</span>';
+  if(on&&(a||b))h+='<div class="sub" style="flex-basis:100%">'+[a,b].filter(x=>x).map(L=>L.map(x=>'<span class="chip'+(T3[n].includes(x)?' on':'')+'" onclick="ts3(\''+n+'\',\''+x+'\')">'+x+'</span>').join('')).join('<b>｜</b>')+'</div>';return h}).join('');
+ c4.innerHTML=INSTR.map(n=>'<span class="chip'+(T4.has(n)?' on':'')+'" onclick="T4.has(\''+n+'\')?T4.delete(\''+n+'\'):T4.add(\''+n+'\');drawTools()">'+n+'</span>').join('')}
+function tg3(n){n in T3?delete T3[n]:T3[n]=[];drawTools()}
+function ts3(n,x){const t=TOOLS.find(r=>r[0]==n);const grpL=(t[1]||[]).includes(x)?t[1]:t[2];T3[n]=T3[n].filter(v=>!grpL.includes(v)||v===x);T3[n].includes(x)?T3[n]=T3[n].filter(v=>v!==x):T3[n].push(x);drawTools()}
+function toolsText(){return Object.keys(T3).map(n=>n+(T3[n].length?'（'+T3[n].join('・')+'）':'')).join('、')||'－'}
+function instrText(){return [...T4].join('、')||'－'}
+function showCmp(){
+ const present=[];['U','L'].forEach(a=>teethRow(a).forEach(([q,t])=>{if(!miss.has(q+t))present.push(q+t)}));
+ let ps=0;present.forEach(id=>{const o=plq[id]||{};ps+=['a','b','c','d'].filter(x=>o[x]).length});
+ const ent=Object.keys(pd).filter(k=>!miss.has(k.replace(/[BPL][DCM]$/,'')));
+ const now=['今回',Math.round(ps/(present.length*4)*100),ent.length?Math.round(ent.filter(k=>bl[k]).length/ent.length*100):0,ent.filter(k=>pd[k]>=4).length];
+ const rows=[...HIST,now];
+ const box=(t,i,u,mx)=>'<div class="bx"><h4>'+t+'</h4><div class="bars">'+rows.map((r,j)=>'<div class="'+(j==rows.length-1?'now':'')+'"><b>'+r[i]+u+'</b><i style="height:'+Math.max(4,r[i]/mx*90)+'px"></i>'+r[0].replace('2026/','')+'</div>').join('')+'</div></div>';
+ trend.innerHTML=box('PCR（プラーク）',1,'%',70)+box('BoP（出血）',2,'%',70)+box('4mm以上のポケット',3,'か所',20);
+ const mini=(P,title)=>'<div><h4>'+title+'</h4><table class="ch">'+['U','L'].map(a=>'<tr>'+teethRow(a).map(([q,t])=>{const o=P[q+t]||{};return '<td class="pq" style="height:24px">'+(miss.has(q+t)?'':'<svg viewBox="0 0 60 26" preserveAspectRatio="none"><polygon points="0,0 60,0 30,13" class="'+(o.a?'on':'')+'"/><polygon points="60,0 60,26 30,13" class="'+(o.b?'on':'')+'"/><polygon points="0,26 60,26 30,13" class="'+(o.c?'on':'')+'"/><polygon points="0,0 0,26 30,13" class="'+(o.d?'on':'')+'"/></svg>')+'</td>'}).join('')+'</tr>'+(a=='U'?'<tr class="num">'+teethRow('U').map(([q,t])=>'<td style="font-size:11px;height:16px">'+t+'</td>').join('')+'</tr>':'')).join('')+'</table></div>';
+ pq2.innerHTML=mini(PPLQ,'前回 2026/8/20　PCR 42%')+mini(plq,'今回　PCR '+now[1]+'%');
+ cmp.style.display='block'}
+function tid(p){return p.q+p.t}
+function skip(i,dir=1){while(i>=0&&i<SEQ.length&&miss.has(tid(SEQ[i])))i+=dir;return Math.max(0,Math.min(SEQ.length,i))}
+function put(v){if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}last=cur;cur=skip(cur+1);draw()}
+function bleedLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);bl[k]=!bl[k];draw()}
+function back(){let i=cur-1;while(i>=0&&miss.has(tid(SEQ[i])))i--;if(i<0)return;cur=i;if(SEQ[i].mob)delete mob[tid(SEQ[i])];else delete pd[key(SEQ[i])];last=i-1;draw()}
+function missCur(){if(cur>=SEQ.length)return;const p=SEQ[cur];miss.add(tid(p));cur=skip(cur);draw()}
+function toggleMiss(){missMode=!missMode;document.getElementById('mm').style.background=missMode?'#E0383E':'';document.getElementById('mm').textContent=missMode?'欠損を選ぶ（中）→ 終わる':'欠損を選ぶ'}
+function tapNum(id){if(!missMode)return;miss.has(id)?miss.delete(id):miss.add(id);cur=skip(cur);draw()}
+function jump(k){const i=SEQ.findIndex(p=>key(p)===k);if(i>=0&&!miss.has(tid(SEQ[i]))){cur=i;draw()}}
+function tapMob(id){const v=mob[id];mob[id]=v===undefined?0:v>=3?undefined:v+1;draw()}
+function tapPq(id,s){plq[id]=plq[id]||{};plq[id][s]=!plq[id][s];draw()}
+// 表
+function order(q){return q[1]==='R'?'DCM':'MCD'}
+function teethRow(arch){return [...range(8,1).map(t=>arch+'R'+t),...range(1,8).map(t=>arch+'L'+t)].map(x=>[x.slice(0,2),+x[2]])}
+function pdRow(arch,surf,lab){let h=`<tr class="pdx"><td class="lb">${lab}</td>`;teethRow(arch).forEach(([q,t],n)=>{const id=q+t;order(q).split('').forEach((s,j)=>{const k=id+surf+s,v=pd[k];const c=['cell'];if(v>=4)c.push('hi');if(bl[k])c.push('bl');if(pu[k])c.push('pu');const pv=PPD[k];if(v&&pv){if(v>pv)c.push('wr');else if(v<pv)c.push('bt')}if(cur<SEQ.length&&key(SEQ[cur])===k)c.push('cur');if(miss.has(id))c.push('miss');h+=`<td class="${c.join(' ')} ${j==0?'tb':''}" onclick="jump('${k}')">${v??''}</td>`})});return h+'<td class="lb re"></td></tr>'}
+function prevRow(arch,surf){let h=`<tr class="pdx prv"><td class="lb">前回</td>`;teethRow(arch).forEach(([q,t])=>{const id=q+t;order(q).split('').forEach((s,j)=>{const k=id+surf+s,v=PPD[k];const on=cur<SEQ.length&&!SEQ[cur].mob&&tid(SEQ[cur])===id&&SEQ[cur].surf===surf;h+=`<td class="${j==0?'tb':''} ${miss.has(id)?'miss':''} ${PBL[k]?'pb':''} ${v>=4?'p4':''} ${on?'pon':''}">${miss.has(id)?'':v??''}</td>`})});return h+'<td class="lb re"></td></tr>'}
+const PMOB={UL7:1,UR6:1};
+function setLay(m){document.body.classList.toggle('noprev',m==0);document.body.classList.toggle('stack',m==2);document.querySelectorAll('#lay span').forEach((e,i)=>e.classList.toggle('on',i==m+1));draw()}
+function prevChart(){
+ const p=SEQ[cur];const isOn=(id,sf)=>p&&!p.mob&&tid(p)===id&&p.surf===sf;
+ const pdR=(a,sf,lb)=>'<tr><td class="lb">'+lb+'</td>'+teethRow(a).map(([q,t])=>{const id=q+t;return order(q).split('').map((x,j)=>{const k=id+sf+x,v=PPD[k];return '<td class="'+(j==0?'tb ':'')+(miss.has(id)?'x ':'')+(v>=4?'h ':'')+(PBL[k]?'b ':'')+(isOn(id,sf)?'on':'')+'">'+(v??'')+'</td>'}).join('')}).join('')+'<td class="re"></td></tr>';
+ const mR=a=>'<tr><td class="lb">動揺度</td>'+teethRow(a).map(([q,t])=>'<td colspan=3 class="tb '+(miss.has(q+t)?'x':'')+'">'+(PMOB[q+t]??'')+'</td>').join('')+'<td class="re"></td></tr>';
+ const pR=a=>'<tr><td class="lb">プラーク</td>'+teethRow(a).map(([q,t])=>{const o=PPLQ[q+t]||{};return '<td colspan=3 class="pq tb '+(miss.has(q+t)?'x':'')+'"><svg viewBox="0 0 60 18" preserveAspectRatio="none"><polygon points="0,0 60,0 30,9" class="'+(o.a?'on':'')+'"/><polygon points="60,0 60,18 30,9" class="'+(o.b?'on':'')+'"/><polygon points="0,18 60,18 30,9" class="'+(o.c?'on':'')+'"/><polygon points="0,0 0,18 30,9" class="'+(o.d?'on':'')+'"/></svg></td>'}).join('')+'<td class="re"></td></tr>';
+ const nR=a=>'<tr class="n"><td class="lb">右</td>'+teethRow(a).map(([q,t])=>'<td colspan=3>'+t+'</td>').join('')+'<td class="re">左</td></tr>';
+ return '<div class="hd"><b>前回の検査　2026/8/20（木）</b><span>PCR 42%</span><span>BoP 31%</span><span>4mm以上 9か所</span><span style="flex:1"></span><span>黄色＝いま測っている所</span></div><table class="pc">'+mR('U')+pdR('U','B','頬側')+pdR('U','P','口蓋側')+pR('U')+nR('U')+nR('L')+pR('L')+pdR('L','L','舌側')+pdR('L','B','頬側')+mR('L')+'</table>'}
+function mobRow(arch){let h='<tr class="pdx"><td class="lb">動揺度</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t;const cc=cur<SEQ.length&&SEQ[cur].mob&&tid(SEQ[cur])===id?'cur':'';h+=`<td colspan=3 class="mob tb ${cc} ${miss.has(id)?'miss':''}" onclick="tapMob('${id}')">${mob[id]??''}</td>`});return h+'<td class="lb re"></td></tr>'}
+function pqRow(arch){let h='<tr><td class="lb">プラーク</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t,p=plq[id]||{};h+=`<td colspan=3 class="pq tb ${miss.has(id)?'miss':''}"><svg viewBox="0 0 60 26" preserveAspectRatio="none">
+<polygon points="0,0 60,0 30,13" class="${p.a?'on':''}" onclick="tapPq('${id}','a')"/><polygon points="60,0 60,26 30,13" class="${p.b?'on':''}" onclick="tapPq('${id}','b')"/>
+<polygon points="0,26 60,26 30,13" class="${p.c?'on':''}" onclick="tapPq('${id}','c')"/><polygon points="0,0 0,26 30,13" class="${p.d?'on':''}" onclick="tapPq('${id}','d')"/></svg></td>`});return h+'<td class="lb re"></td></tr>'}
+function numRow(arch){let h='<tr class="num"><td class="lb">右</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t;h+=`<td colspan=3 class="${miss.has(id)?'missn':''}" onclick="tapNum('${id}')">${t}</td>`});return h+'<td class="lb re">左</td></tr>'}
+function draw(){
+ if(document.body.classList.contains('stack'))pcard.innerHTML=prevChart();
+ document.getElementById('up').innerHTML=mobRow('U')+prevRow('U','B')+pdRow('U','B','頬側')+prevRow('U','P')+pdRow('U','P','口蓋側')+pqRow('U')+numRow('U');
+ document.getElementById('lo').innerHTML=numRow('L')+pqRow('L')+prevRow('L','L')+pdRow('L','L','舌側')+prevRow('L','B')+pdRow('L','B','頬側')+mobRow('L');
+ const p=SEQ[cur];document.getElementById('nowp').innerHTML=p&&!p.mob?'前回 この歯：'+order(p.q).split('').map(x=>{const k=tid(p)+p.surf+x;return '<span class="'+(PBL[k]?'pb':'')+(PPD[k]>=4?' p4':'')+'">'+(PPD[k]??'－')+'</span>'}).join(' '):'';document.getElementById('now').textContent=p?(p.mob?`動揺度　${Q[p.q]}${p.t}番（0＝なし）`:`${SF[p.surf]}　${Q[p.q]}${p.t}番　${SN[p.site]}`):'全部入りました';
+ document.getElementById('steps').innerHTML=SEGS.map((s,i)=>`<span class="${p&&p.si===i?'on':(!p||i<p.si)?'done':''}">${i+1}. ${s.name}</span>`).join('');
+ // 計算
+ const present=[];['U','L'].forEach(a=>teethRow(a).forEach(([q,t])=>{if(!miss.has(q+t))present.push(q+t)}));
+ let ps=0;present.forEach(id=>{const o=plq[id]||{};ps+=['a','b','c','d'].filter(s=>o[s]).length});
+ const pcr=present.length?Math.round(ps/(present.length*4)*100):0;
+ const ent=Object.keys(pd).filter(k=>!miss.has(k.replace(/[BPL][DCM]$/,'')));
+ const bop=ent.length?Math.round(ent.filter(k=>bl[k]).length/ent.length*100):0;
+ const p4=ent.filter(k=>pd[k]>=4).length;
+ set('pcr',pcr+'%',pcr,PREV.pcr,'%');set('bop',bop+'%',bop,PREV.bop,'%');set('p4',p4+'か所',p4,PREV.p4,'');
+}
+function set(id,txt,v,pv,u){document.getElementById(id).textContent=txt;const e=document.getElementById(id+'0');const d=v-pv;e.textContent=`前回 ${pv}${u}（${d>0?'+':''}${d}）`;e.className=d>0?'up':d<0?'dn':''}
+// 声
+const KN={'〇':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'１':1,'２':2,'３':3,'４':4,'５':5,'６':6,'７':7,'８':8,'９':9};
+const KW=[['じゅう','10 '],['いち','1'],['さん','3'],['よん','4'],['ろく','6'],['なな','7'],['しち','7'],['はち','8'],['きゅう','9'],['ご','5'],['し','4'],['に','2']];
+function norm(s){s=s.replace(/ゼロ|れい/g,'0');s=s.replace(/[〇一二三四五六七八九１-９]/g,c=>KN[c]);KW.forEach(([a,b])=>{s=s.split(a).join(b)});return s}
+function hear(raw){
+ if(!raw)return;const s=raw.trim();let msg='';
+ if(/動揺/.test(s)&&/(右上|左上|右下|左下)/.test(s)){
+   const qq={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};const m=norm(s).match(/(右上|左上|右下|左下)\s*(\d)\s*番?.*?動揺度?\s*(\d)/);
+   if(m){const v=+m[3];if(v)mob[qq[m[1]]+m[2]]=v;else delete mob[qq[m[1]]+m[2]];msg=`${m[1]}${m[2]}番 動揺度 ${v||'なし'}`}else msg='聞き取れませんでした';
+ }else if(/出血|排膿|はいのう/.test(s)){
+   const surfDef=SEQ[Math.max(0,last)].mob?'L':SEQ[Math.max(0,last)].surf;let surf=/頬側/.test(s)?'B':/口蓋/.test(s)?'P':/舌側/.test(s)?'L':surfDef;
+   const re=/(右上|左上|右下|左下)\s*([0-9１-８一二三四五六七八]|いち|に|さん|よん|ご|ろく|なな|はち)\s*番?|近心|中央|遠心/g;let m,tooth=null,hits=[];
+   const qq={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};
+   while((m=re.exec(s))){if(m[1]){tooth=qq[m[1]]+norm(m[2]).trim()}else if(tooth){hits.push(tooth+surf+{近心:'M',中央:'C',遠心:'D'}[m[0]])}}
+   if(tooth&&!hits.length)hits=['D','C','M'].map(x=>tooth+surf+x);
+   const B=/出血/.test(s),P=/排膿|はいのう/.test(s);hits.forEach(k=>{if(B)bl[k]=true;if(P)pu[k]=true});msg=hits.length?`${[B?'出血':'',P?'排膿':''].filter(x=>x).join('・')} ${hits.length}か所 つけました`:'場所が聞き取れませんでした';
+ }else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
+ else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
+ else if(/戻る|もどる/.test(s)){back();msg='ひとつ戻りました'}
+ else{const d=norm(s).replace(/10 /g,'X').replace(/[^0-9X]/g,'').split('');d.forEach(c=>put(c==='X'?10:+c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
+ document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s}」 → ${msg}`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s,msg:msg});drawLog();draw();
+}
+let rec=null,on=false;
+// キーボードの音声入力：話して少し止まったら、新しく増えた分だけを読む
+let txDone=0,txTimer=null;
+function txFlush(clear){clearTimeout(txTimer);const v=tx.value;if(v.length<txDone)txDone=0;const n=v.slice(txDone).trim();txDone=v.length;if(n)hear(n);if(clear||v.length>300){tx.value='';txDone=0}}
+tx.addEventListener('input',()=>{clearTimeout(txTimer);txTimer=setTimeout(()=>txFlush(false),1200)});
+tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();txFlush(true)}});
+function mic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const b=document.getElementById('mic');
+ if(!SR){document.getElementById('heard').innerHTML='<i>この画面では声の聞き取りが使えません（下の文字で試せます）</i>';return}
+ if(on){rec.stop();on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）';return}
+ rec=new SR();rec.lang='ja-JP';rec.continuous=true;rec.interimResults=false;
+ rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)hear(e.results[i][0].transcript)};
+ rec.onerror=e=>{const m={'not-allowed':'マイクが許可されていません。アドレス欄の左の「ぁあ」→「Webサイトの設定」→マイクを「許可」にしてください','service-not-allowed':'この画面では上の青いボタンのマイクが使えません。下の入力欄をタップして、キーボードの🎤で話してください','no-speech':'声が聞こえませんでした','audio-capture':'マイクが見つかりません','network':'ネットにつながっていません'}[e.error]||('エラー：'+e.error);document.getElementById('heard').innerHTML='<i>'+m+'</i>';LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:'（'+e.error+'）',msg:m});drawLog();if(e.error==='not-allowed'||e.error==='service-not-allowed'){try{tx.focus()}catch(x){};on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）'}};rec.onend=()=>{if(on){try{rec.start()}catch(x){}}};rec.start();on=true;b.classList.add('on');b.textContent='● 聞いています（押すと止まる）'}
+// 見本の途中の状態
+document.getElementById('dt').textContent='2026/11/13（金）';
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const g=c.parentElement;if(g.hasAttribute('data-one'))g.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.toggle('on')});
+
+// おすすめ（品目は仮。院長の物販リストの写真から作り直す）
+const GOODS=[{n:'歯間ブラシ',sz:1},{n:'フロス（ホルダー型）'},{n:'ワンタフトブラシ'},{n:'歯ブラシ（やわらかめ）'},{n:'歯ブラシ（ふつう）'},{n:'フッ素入り歯みがき剤（高濃度）'},{n:'洗口剤（低刺激）'},{n:'舌ブラシ'}];
+const ICONS={"歯間ブラシ": "<svg viewBox=\"0 0 60 60\"><rect x=\"6\" y=\"27\" width=\"30\" height=\"6\" rx=\"3\" fill=\"#4A90D0\"/><rect x=\"36\" y=\"29\" width=\"8\" height=\"2\" fill=\"#999\"/><g stroke=\"#888\" stroke-width=\"1.4\"><line x1=\"44\" y1=\"24\" x2=\"44\" y2=\"36\"/><line x1=\"46\" y1=\"24\" x2=\"46\" y2=\"36\"/><line x1=\"48\" y1=\"24\" x2=\"48\" y2=\"36\"/><line x1=\"50\" y1=\"24\" x2=\"50\" y2=\"36\"/><line x1=\"52\" y1=\"24\" x2=\"52\" y2=\"36\"/><line x1=\"54\" y1=\"24\" x2=\"54\" y2=\"36\"/></g></svg>", "ワンタフトブラシ": "<svg viewBox=\"0 0 60 60\"><rect x=\"4\" y=\"28\" width=\"40\" height=\"6\" rx=\"3\" fill=\"#9B72CF\"/><rect x=\"44\" y=\"26\" width=\"5\" height=\"10\" rx=\"2\" fill=\"#7a5aa8\"/><ellipse cx=\"53\" cy=\"31\" rx=\"4\" ry=\"6\" fill=\"#ddd\" stroke=\"#aaa\"/></svg>", "フロス": "<svg viewBox=\"0 0 60 60\"><path d=\"M8 36 L34 36 L44 22 L52 22 L52 34\" fill=\"none\" stroke=\"#5FA51E\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><line x1=\"44\" y1=\"22\" x2=\"52\" y2=\"34\" stroke=\"#999\" stroke-width=\"1\"/></svg>", "歯ブラシ": "<svg viewBox=\"0 0 60 60\"><rect x=\"4\" y=\"30\" width=\"34\" height=\"6\" rx=\"3\" fill=\"#E8737A\"/><rect x=\"38\" y=\"28\" width=\"18\" height=\"6\" rx=\"2\" fill=\"#e0e0e0\"/><g stroke=\"#bbb\" stroke-width=\"1.5\"><line x1=\"40\" y1=\"20\" x2=\"40\" y2=\"28\"/><line x1=\"43\" y1=\"20\" x2=\"43\" y2=\"28\"/><line x1=\"46\" y1=\"20\" x2=\"46\" y2=\"28\"/><line x1=\"49\" y1=\"20\" x2=\"49\" y2=\"28\"/><line x1=\"52\" y1=\"20\" x2=\"52\" y2=\"28\"/><line x1=\"55\" y1=\"20\" x2=\"55\" y2=\"28\"/></g></svg>", "歯みがき剤": "<svg viewBox=\"0 0 60 60\"><path d=\"M8 22 L44 22 L50 28 L50 34 L44 40 L8 40 Z\" fill=\"#F2C14E\"/><rect x=\"50\" y=\"27\" width=\"6\" height=\"8\" rx=\"1\" fill=\"#fff\" stroke=\"#aaa\"/><text x=\"24\" y=\"34\" font-size=\"8\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\">F</text></svg>"};function icon(n){if(/歯磨き粉|歯みがき剤/.test(n))return ICONS['歯みがき剤'];if(/洗口|舌|ガム/.test(n))return '';for(const k in ICONS)if(n.indexOf(k)===0||n.indexOf(k)>=0)return ICONS[k];return ''}
+const PREVREC=['歯間ブラシ（SS）'];let prevUse={};const REC=new Set();
+function suggest(){const out=[];const sites=Object.keys(pd).filter(k=>!miss.has(k.replace(/[BPL][DCM]$/,'')));
+ const inter=sites.filter(k=>/[DM]$/.test(k)&&(pd[k]>=4||bl[k])).length;
+ const molarPq=Object.keys(plq).filter(id=>+id[2]>=6&&Object.values(plq[id]).some(x=>x)).length;
+ const bop=sites.length?sites.filter(k=>bl[k]).length/sites.length:0;
+ if(inter>=3){out.push(['歯間ブラシ（SS）','歯と歯の間の出血・ポケットが'+inter+'か所']);out.push(['フロス（ホルダー型）','歯間ブラシが入りにくい前歯に'])}
+ if(molarPq>=2)out.push(['ワンタフトブラシ','奥歯のみがき残しが'+molarPq+'本']);
+ if(bop>=0.1||true)out.push(['歯ブラシ（やわらかめ）','歯ぐきの出血がある方に（BoP '+Math.round(bop*100)+'%）']);
+ out.push(['フッ素入り歯みがき剤（高濃度）','むし歯予防に（根元が出ている歯がある方）']);
+ return out}
+function drawRec(){
+ prevrec.innerHTML='前回おすすめ：'+PREVREC.map(x=>'<b>'+x+'</b> 使っていますか？'+['使っている','ときどき','使っていない'].map(a=>'<span class="'+(prevUse[x]===a?'on':'')+'" onclick="prevUse[\''+x+'\']=\''+a+'\';drawRec();memoRec()">'+a+'</span>').join('')).join('　');
+ const SG=suggest();EXTRA.forEach(n=>{if(!SG.some(x=>x[0]==n))SG.push([n,'物販リストから選択'])});sug.innerHTML=SG.map(([n,r])=>'<div class="sg'+(REC.has(n)?' on':'')+'" onclick="REC.has(\''+n+'\')?REC.delete(\''+n+'\'):REC.add(\''+n+'\');drawRec();memoRec()"><i class="ic">'+icon(n)+'</i><b>'+n+'</b><small>'+r+'</small></div>').join('')+'<div class="sg" style="border-style:dashed" onclick="gp.style.display=\'block\'"><b>＋ ほかの品から選ぶ</b><small>物販リスト（院長が設定）</small></div>'}
+const GL=[['歯みがき剤',['SPT歯磨き粉','フッ素入り歯みがき剤（高濃度）','知覚過敏用の歯みがき剤']],['歯ブラシ',['歯ブラシ（やわらかめ）','歯ブラシ（ふつう）','ワンタフトブラシ','電動歯ブラシ用 替えブラシ']],['歯間・フロス',['歯間ブラシ（SSSS〜L）','フロス（ホルダー型）','フロス（ロール型）']],['そのほか',['洗口剤（低刺激）','舌ブラシ','キシリトールガム']]];
+const EXTRA=[];
+function drawGL(){gl.innerHTML=GL.map(([c,l])=>'<div style="margin-bottom:6px"><small style="color:#667">'+c+'</small><div class="sug" style="margin-top:3px">'+l.map(n=>'<div class="sg'+(REC.has(n)?' on':'')+'" onclick="pickG(\''+n+'\')"><i class="ic">'+icon(n)+'</i><b>'+n+'</b><small>'+(REC.has(n)?'選びました':'タップで選ぶ')+'</small></div>').join('')+'</div></div>').join('')}
+function pickG(n){if(REC.has(n)){REC.delete(n)}else{REC.add(n);if(!EXTRA.includes(n))EXTRA.push(n)}drawGL();drawRec();memoRec()}
+function memoRec(){let m=memo.value.replace(/\n?(おすすめ|前回おすすめ)：[^\n]*/g,'');
+ const pu=Object.entries(prevUse).map(([k,v])=>k+'→'+v);if(pu.length)m+='\n前回おすすめ：'+pu.join('、');
+ if(REC.size)m+='\nおすすめ：'+[...REC].join('、');memo.value=m.replace(/^\n/,'')}
+function chosen(sel){return [...document.querySelectorAll(sel+' .chip.on')].map(c=>c.textContent).join('・')||'－'}
+function grp(i){return chosen('.row .card:nth-child(3) .grp:nth-child('+i+')')}
+function showRec(){
+ const teeth=a=>teethRow(a);
+ const E='<td style="width:22px;border:none"></td>';const pdR=(a,sf,lb)=>'<tr><td class="l">'+lb+'</td>'+teeth(a).map(([q,t])=>{const id=q+t;return order(q).split('').map((x,j)=>{const k=id+sf+x,v=pd[k];return '<td class="'+(miss.has(id)?'x ':'')+(v>=4?'h ':'')+(bl[k]?'c ':'')+(pu[k]?'u ':'')+(j==0?'t':'')+'">'+(v??'')+'</td>'}).join('')}).join('')+E+'</tr>';
+ const mR=a=>'<tr><td class="l">動揺度</td>'+teeth(a).map(([q,t])=>'<td colspan=3 class="t '+(miss.has(q+t)?'x':'')+'">'+(mob[q+t]??'')+'</td>').join('')+E+'</tr>';
+ const laR=a=>'<tr><td class="l">LA etc.</td>'+teeth(a).map(([q,t])=>'<td colspan=3 class="t '+(miss.has(q+t)?'x':'')+'"></td>').join('')+E+'</tr>';
+ const pR=a=>'<tr><td class="l">プラーク</td>'+teeth(a).map(([q,t])=>{const o=plq[q+t]||{};return '<td colspan=3 class="p t '+(miss.has(q+t)?'x':'')+'"><svg viewBox="0 0 60 21" preserveAspectRatio="none"><polygon points="0,0 60,0 30,10.5" class="'+(o.a?'on':'')+'"/><polygon points="60,0 60,21 30,10.5" class="'+(o.b?'on':'')+'"/><polygon points="0,21 60,21 30,10.5" class="'+(o.c?'on':'')+'"/><polygon points="0,0 0,21 30,10.5" class="'+(o.d?'on':'')+'"/></svg></td>'}).join('')+E+'</tr>';
+ const nR='<tr class="n"><td class="l" style="font-size:12px">右</td>'+teeth('U').map(([q,t])=>'<td colspan=3>'+t+'</td>').join('')+'<td style="width:22px;font-size:12px">左</td></tr>';
+ const present=[];['U','L'].forEach(a=>teeth(a).forEach(([q,t])=>{if(!miss.has(q+t))present.push(q+t)}));
+ let ps=0;present.forEach(id=>{const o=plq[id]||{};ps+=['a','b','c','d'].filter(x=>o[x]).length});
+ const ent=Object.keys(pd).filter(k=>!miss.has(k.replace(/[BPL][DCM]$/,'')));const nb=ent.filter(k=>bl[k]).length;
+ document.getElementById('sheet').innerHTML='<h2><span>歯周組織検査・歯科口腔衛生指導・歯科衛生士業務記録</span><span>カルテNo. '+kno.textContent+'</span></h2>'+
+ '<div class="bx"><div class="lf"><div><b>日付</b>2026/11/13（金）</div><div><b>時間</b>'+t1.value+'〜'+t2.value+'</div><div><b>染め出し</b>'+grp(1)+'</div>'+
+ '<div><b>PS</b>'+ps+' / '+present.length*4+' = '+Math.round(ps/(present.length*4)*100)+'%</div><div><b>BoP</b>'+(mode||!ent.length?'－':nb+' / '+ent.length+' = '+Math.round(nb/ent.length*100)+'%')+'</div>'+
+ '<div><b>歯磨き</b>'+grp(2)+'</div><div><b>清掃用具</b>'+toolsText()+'</div><div><b>使用器具</b>'+instrText()+'</div></div>'+
+ '<div><table>'+laR('U')+mR('U')+pdR('U','B','頬側')+pdR('U','P','口蓋側')+pR('U')+nR+'</table><div style="height:6px"></div><table>'+nR+pR('L')+pdR('L','L','舌側')+pdR('L','B','頬側')+mR('L')+laR('L')+'</table></div></div>'+
+ '<div class="wk"><small>歯科衛生士業務記録</small>'+memo.value.replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div><div class="ft"><span>'+(mode?'プラークのみ記入（歯周検査なし）':'出血＝赤丸・排膿＝青丸・両方＝二重丸・4mm以上は赤')+'</span><span>担当 内田</span></div>';
+ rv.style.display='block';
+}
+const WC=[["見出し", ["指導管理の実施時間：", "指導内容：", "指導等の評価："]], ["プラーク", ["プラークコントロールの重要性とブラッシング指導を説明", "プラークコントロールの重要性を説明", "プラークコントロール不良の為、ブラッシング再指導", "プラークコントロール不良の為、バス法を再指導", "プラークの付着状況、プラークの付着と腫脹、歯周病との関係を説明", "プラークの付着状況と歯肉の状態を説明し、バス法を指導", "プラークの付着状態を確認させ、ブラッシング方法を指導", "歯石、プラークの付着状況、歯ブラシの選択と使用法、歯磨き剤の説明を指示", "染め出してプラーク付着状況を確認し、刷掃方法を説明"]], ["ブラッシング", ["奥から順番に歯と歯茎の境目を磨きましょう。", "食後のブラッシングの重要性を説明", "ブラッシングにより、歯肉炎が治癒する事を説明", "ブラッシングの回数と歯磨材と歯ブラシの選択について説明", "ブラッシング方法を指導", "ブラッシング指導（スクラビング法、フォーンズ法）", "ブラッシング指導（バス法、スクラビング法、デンタルフロス）", "ブラッシング指導（バス法、毛先磨き、デンタルピック）", "ブラッシング指導", "柔らかめの歯ブラシにてバス法を指導するよう指示", "除石後のブラッシングの重要性を説明", "ローリング法を指導", "日頃のブラッシングをさせ、磨き残し部分を指摘", "残存歯の刷掃について指導", "清掃不良の為刷掃方法を説明"]], ["歯周病・管理", ["歯周疾患の知識、治療による改善度について説明", "歯肉の腫脹は歯周病の進行が原因であることの説明", "歯肉炎と歯周病について説明", "重症化予防のため、継続的な口腔機能の管理を行う旨を説明", "重症化予防のため、定期的なう蝕の管理を行う旨を説明", "重症化予防のため、定期的な歯周病の治療管理を行う旨を説明", "定期的な検査の重要性を説明", "糖尿病で歯周病が進行しやすいため、継続的な管理を行う旨を説明", "病状安定。メンテナンスの必要性を説明", "歯周病と今後の方針を説明", "歯周病について説明", "歯周病によって起こる弊害を説明", "歯周病の原因とブラッシング指導とプラーク除去を併用していくことを説明", "歯周病の正しい知識を説明"]], ["歯ブラシ・用具", ["歯ブラシについて説明", "歯ブラシの基本的な使い方を説明", "歯ブラシの正しい使い方を説明", "歯間ブラシの使い方を説明"]], ["口の状態・食事・その他", ["現在の口腔内の状態を説明", "間食について指導", "規則正しい食生活について", "歯肉マッサージをするよう指導", "初めは柔らかいものから食べていくように指導", "日常的な口腔ケアの方法を説明", "熱い食物の摂取には注意するよう説明", "規則正しい生活とバランスの取れた食生活について説明", "現在の口腔内の状況を説明", "現在の残存歯、顎堤の状況を説明", "口腔内の現状を説明し、今後の治療方針を説明", "残存歯の大切さと、歯があることの大切さを説明"]]];let wc=1;
+function drawW(){wt.innerHTML=WC.map((c,i)=>'<span class="chip'+(i==wc?' on':'')+'" style="font-weight:600" onclick="wc='+i+';drawW()">'+c[0]+'</span>').join('');
+ wd.innerHTML=WC[wc][1].map(w=>'<span class="chip" style="background:#F4F6F9">'+w+'</span>').join('');
+ wd.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const t=c.textContent;memo.value+=(memo.value&&!/[\n、。：]$/.test(memo.value)?(t.endsWith('：')?'\n':'。'):'')+t})}
+drawW();
+SEQ.forEach((p,i)=>{if(p.mob)return;const k=key(p);const v=pd[k]||3;PPD[k]=Math.max(1,v+([0,1,0,-1,0,0,1][i%7]))});
+drawTools();setLay(1);cur=skip(0);drawRec();drawGL();draw();
+</script><div id="tbar" style="position:fixed;left:0;right:0;bottom:0;z-index:50;background:#FFF8E1;border-top:2px solid #F0B429;padding:6px 12px;font-size:13px;display:flex;gap:10px;align-items:center">
+<b style="color:#8A5A00">声の試し版</b><span>保存はされません。聞き取った言葉の記録だけ「送る」で院長のSheetに残せます（数字と部位だけ・名前なし）。</span>
+<span id="lgn" style="margin-left:auto">記録 0件</span><button onclick="lgv.style.display=lgv.style.display=='block'?'none':'block'" style="padding:6px 10px">記録を見る</button><button id="lgs" onclick="sendLog()" style="padding:6px 12px;background:#1E2A44;color:#fff;border:0;border-radius:6px">記録を送る</button></div>
+<div id="lgv" style="display:none;position:fixed;right:12px;bottom:46px;width:460px;max-height:50vh;overflow:auto;background:#fff;border:1px solid #ccd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:51;padding:8px;font-size:13px"></div>
+<div style="height:48px"></div>
+<script>
+const LOG=[];let sent=0;
+function drawLog(){lgn.textContent='記録 '+LOG.length+'件'+(sent?'（送った '+sent+'件）':'');lgv.innerHTML=LOG.slice().reverse().map(l=>'<div style="border-bottom:1px solid #eee;padding:3px 0"><small style="color:#889">'+l.t+'</small> 「'+l.raw.replace(/</g,'&lt;')+'」<br>→ '+l.msg+'</div>').join('')||'まだありません'}
+function sendLog(){const rows=LOG.slice(sent);if(!rows.length){lgs.textContent='送るものなし';setTimeout(()=>lgs.textContent='記録を送る',1500);return}
+ lgs.textContent='送っています…';api('saveVoiceLog',{rows:rows.map(l=>[l.t,l.raw,l.msg])}).then(r=>{sent+=rows.length;lgs.textContent='送りました ✓';drawLog();setTimeout(()=>lgs.textContent='記録を送る',2000)}).catch(e=>{lgs.textContent='送れませんでした（'+e.message+'）'})}
+// 保存先（院長のSheet）とのやりとり。合言葉はこのiPadにだけ覚える
+const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DPh-bFlewkjJ7vsRayDCriD2IKHYfHzLue5ScUwn/exec';
+function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
+function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
+drawLog();
+</script></body></html>
