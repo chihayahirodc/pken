@@ -328,7 +328,7 @@ function hear(raw){
    while((m=re.exec(s))){if(m[1]){tooth=qq[m[1]]+norm(m[2]).trim()}else if(tooth){hits.push(tooth+surf+{近心:'M',中央:'C',遠心:'D'}[m[0]])}}
    if(tooth&&!hits.length)hits=['D','C','M'].map(x=>tooth+surf+x);
    const B=/出血/.test(s),P=/排膿|はいのう/.test(s);hits.forEach(k=>{if(B)bl[k]=true;if(P)pu[k]=true});msg=hits.length?`${[B?'出血':'',P?'排膿':''].filter(x=>x).join('・')} ${hits.length}か所 つけました`:'場所が聞き取れませんでした';
- }else if(/^(次|つぎ)/.test(s.replace(/[\s、。]/g,''))){if(pause!==null){nextSeg();return}msg='いまは検査の途中です'}
+ }else if(/^(次|つぎ)/.test(s.replace(/[\s、。]/g,''))||(/(頬側|きょうそく|舌側|ぜっそく|口蓋側|こうがいそく)/.test(s)&&/(行き|いき|行く|いく)/.test(s)&&!/出血|排膿|はいのう/.test(s))){if(pause!==null){nextSeg();return}msg='いまは検査の途中です'}
  else if(pause!==null&&!/戻る|もどる/.test(s)){msg='出血部位を読み上げてください。終わったら「次」'}
  else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
  else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
@@ -411,7 +411,7 @@ function drawW(){wt.innerHTML=WC.map((c,i)=>'<span class="chip'+(i==wc?' on':'')
  wd.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const t=c.textContent;memo.value+=(memo.value&&!/[\n、。：]$/.test(memo.value)?(t.endsWith('：')?'\n':'。'):'')+t})}
 drawW();
 SEQ.forEach((p,i)=>{if(p.mob)return;const k=key(p);const v=pd[k]||3;PPD[k]=Math.max(1,v+([0,1,0,-1,0,0,1][i%7]))});
-const _draw=draw;draw=function(){_draw();const nb=document.getElementById('nxb');if(pause!==null){const nx=SEGS[pause+1];document.getElementById('now').textContent=SEGS[pause].name+' 終わり';document.getElementById('nowp').textContent='出血部位を読み上げ（例「左上7番 近心 出血」）→ 終わったら「次」'+(nx?'で '+nx.name+' へ':'');nb.style.display='inline-block'}else nb.style.display='none'};
+const _draw=draw;draw=function(){_draw();const nb=document.getElementById('nxb');if(pause!==null){const nx=SEGS[pause+1];document.getElementById('now').textContent=SEGS[pause].name+' 終わり';document.getElementById('nowp').textContent='出血部位を読み上げ（例「左上7番 近心 出血」）→ 終わったら「次」か「'+(nx?nx.name.split(' ')[1]:'次')+' 行きます」'+(nx?'で '+nx.name+' へ':'');nb.style.display='inline-block'}else nb.style.display='none'};
 drawTools();setLay(1);cur=skip(0);drawRec();drawGL();draw();
 </script><div id="tbar" style="position:fixed;left:0;right:0;bottom:0;z-index:50;background:#FFF8E1;border-top:2px solid #F0B429;padding:6px 12px;font-size:13px;display:flex;gap:10px;align-items:center">
 <b style="color:#8A5A00">声の試し版</b><span>保存はされません。聞き取った言葉の記録だけ「送る」で院長のSheetに残せます（数字と部位だけ・名前なし）。</span>
