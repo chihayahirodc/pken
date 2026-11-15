@@ -184,7 +184,7 @@ body.stack table.ch td{height:22px}body.stack table.ch tr.num td{height:18px;fon
         <button class="mic" id="mic" onclick="mic()">🎤 声で入力（押してから話す）</button>
         <div class="heard" id="heard"><i>聞き取った言葉がここに出ます</i></div>
         <div class="try"><input id="tx" autocomplete="off" placeholder="ここをタップ → キーボードの🎤を押して話す（文字でも可）" style="font-size:18px"><button onclick="txFlush(true)">入れる</button></div>
-        <div class="ex">話し方の例 ・数字だけ「3 2 4」→3点入って次へ ・「なし」→その歯を欠損にして次の歯へ<br>・「左上7番 近心 出血」「右上6番 遠心と中央 出血」→ その面（いま終わった側）に出血 ・「左上7番 近心 排膿」→青丸（出血もなら二重丸）<br>・動揺度は「1」「2」「なし」で歯ごとに進む（上は左上8→右上8、下は右下8→左下8）・「戻る」</div>
+        <div class="ex">話し方の例 ・数字だけ「3 2 4」→3点入って次へ ・「なし」→その歯を欠損にして次の歯へ<br>・<b>数字のすぐ後に「出血」</b>（例「3 2 出血 3」）→ その点に出血 ・あとからまとめて「左上7番 近心 出血」「右上6番 遠心と中央 出血」→ その面（いま終わった側）に出血 ・「左上7番 近心 排膿」→青丸（出血もなら二重丸）<br>・動揺度は「1」「2」「なし」で歯ごとに進む（上は左上8→右上8、下は右下8→左下8）・「戻る」</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px"><button onclick="showCmp()" style="flex:1;height:36px;border:none;border-radius:8px;background:var(--g);color:#fff;font-weight:600">前回と比べる（PCR・BoP）</button></div>
       <div class="stats" style="margin-top:8px">
@@ -324,6 +324,11 @@ function hear(raw){
    const qq={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};
    while((m=re.exec(s))){if(m[1]){tooth=qq[m[1]]+norm(m[2]).trim()}else if(tooth){hits.push(tooth+surf+{近心:'M',中央:'C',遠心:'D'}[m[0]])}}
    if(tooth&&!hits.length)hits=['D','C','M'].map(x=>tooth+surf+x);
+   if(!tooth){ // 場所を言わない「出血」：数字のすぐ後に言えば、その直前に入れた点につける
+     const parts=norm(s).match(/出血|排膿|はいのう|10 |\d/g)||[];let n=0,marks=0;
+     parts.forEach(t=>{if(/\d/.test(t)){put(t==='10 '?10:+t);n++}else if(last>=0&&!SEQ[last].mob){const k=key(SEQ[last]);if(t==='出血')bl[k]=true;else pu[k]=true;marks++}});
+     document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s}」 → ${n?n+'点 入れて、':''}${marks?'直前の点に'+(/出血/.test(s)?'出血':'')+(/排膿|はいのう/.test(s)?'排膿':'')+' '+marks+'か所':'つける点がありません'}`;
+     LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s,msg:document.getElementById('heard').textContent});drawLog();draw();return}
    const B=/出血/.test(s),P=/排膿|はいのう/.test(s);hits.forEach(k=>{if(B)bl[k]=true;if(P)pu[k]=true});msg=hits.length?`${[B?'出血':'',P?'排膿':''].filter(x=>x).join('・')} ${hits.length}か所 つけました`:'場所が聞き取れませんでした';
  }else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
  else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
