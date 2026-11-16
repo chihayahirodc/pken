@@ -167,7 +167,7 @@ td.pend{background:#FEF08A!important;box-shadow:inset 0 0 0 2px #EAB308}
     <table class="ch" id="up"></table>
     <div class="mid"></div>
     <table class="ch" id="lo"></table>
-    <div class="lg"><span><b style="display:inline-block;width:16px;height:16px;border:2px solid var(--red);border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 出血は赤丸・<b style="display:inline-block;width:16px;height:16px;border:2px solid #2563EB;border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 排膿は青丸・両方は二重丸</span><span style="color:var(--red);font-weight:600">4</span><span>=4mm以上は赤字</span><span><u></u>プラーク（4面をタップ）</span><span>動揺度は0・1・2・3（タップで変更）</span><span>歯の登録：欠損＝斜線、インプラント・埋伏・C4は測らない、半埋伏・Tr（治療中）は測る</span></div>
+    <div class="lg"><span><b style="display:inline-block;width:16px;height:16px;border:2px solid var(--red);border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 出血は赤丸・<b style="display:inline-block;width:16px;height:16px;border:2px solid #2563EB;border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 排膿は青丸・両方は二重丸</span><span style="color:var(--red);font-weight:600">4</span><span>=4mm以上は赤字</span><span><u></u>プラーク（タップで大きく開く）</span><span>動揺度は0・1・2・3（タップで変更）</span><span>歯の登録：欠損＝斜線、インプラント・埋伏・C4は測らない、半埋伏・Tr（治療中）は測る</span></div>
   </div>
   <div class="row">
     <div class="card pdx">
@@ -312,6 +312,12 @@ function closeCm(){const m=document.getElementById('cm');if(m)m.style.display='n
 function cmMark(k,t){const o=t==='b'?bl:pu;BH.push([[k,bl[k],pu[k]]]);if(o[k])delete o[k];else o[k]=true;draw();closeCm()} // 数字をタップ→出血・排膿をつける／外す
 function jump(k){const i=SEQ.findIndex(p=>key(p)===k);if(i>=0&&!miss.has(tid(SEQ[i]))){if(!EDIT&&(i<cur||pause!==null))EDIT={ret:cur,pause,si:SEQ[i].si};pause=null;cur=i;draw()}}
 function tapMob(id){const v=mob[id];mob[id]=v===undefined?0:v>=3?undefined:v+1;draw()}
+function openPq(id){let m=document.getElementById('pqz');if(!m){m=document.createElement('div');m.id='pqz';m.style.cssText='position:fixed;inset:0;z-index:90;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center';m.onclick=e=>{if(e.target===m)m.style.display='none'};document.body.appendChild(m)}
+ const p=plq[id]||{},nm={UR:'右上',UL:'左上',LR:'右下',LL:'左下'}[id.slice(0,2)]+id.slice(2)+'番';const row=teethRow(id[0]==='U'?'U':'L').map(([q,t])=>q+t).filter(x=>!miss.has(x));const i=row.indexOf(id);
+ const P=(pts,k,c)=>`<polygon points="${pts}" fill="${p[k]?'#F59F00':'#fff'}" stroke="#94A3B8" stroke-width=".6" onclick="tapPq('${id}','${k}');openPq('${id}')" style="cursor:pointer"/>`;
+ m.innerHTML=`<div style="background:#fff;border-radius:18px;padding:18px 22px;box-shadow:0 12px 30px rgba(0,0,0,.35);text-align:center"><div style="font-size:22px;font-weight:bold;color:#1E2A44;margin-bottom:10px">プラーク　${nm}</div>
+ <svg width="300" height="190" viewBox="0 0 60 38" style="touch-action:manipulation">${P('0,0 60,0 30,19','a')}${P('60,0 60,38 30,19','b')}${P('0,38 60,38 30,19','c')}${P('0,0 0,38 30,19','d')}</svg>
+ <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">${i>0?`<button onclick="openPq('${row[i-1]}')" style="font-size:17px;padding:10px 16px;border-radius:10px;border:1px solid #cbd5e1;background:#F1F5F9">◀ 前の歯</button>`:''}<button onclick="document.getElementById('pqz').style.display='none'" style="font-size:17px;padding:10px 18px;border-radius:10px;border:0;background:#1E2A44;color:#fff">閉じる</button>${i<row.length-1?`<button onclick="openPq('${row[i+1]}')" style="font-size:17px;padding:10px 16px;border-radius:10px;border:1px solid #cbd5e1;background:#F1F5F9">次の歯 ▶</button>`:''}</div></div>`;m.style.display='flex'} // プラークは大きく開いてタップ
 function tapPq(id,s){plq[id]=plq[id]||{};plq[id][s]=!plq[id][s];draw()}
 // 表
 function order(q){return q[1]==='R'?'DCM':'MCD'}
@@ -329,8 +335,8 @@ function prevChart(){
  return '<div class="hd"><b>前回の検査　2026/8/20（木）</b><span>PCR 42%</span><span>BoP 31%</span><span>4mm以上 9か所</span><span style="flex:1"></span><span>黄色＝いま測っている所</span></div><table class="pc">'+mR('U')+pdR('U','B','頬側')+pdR('U','P','口蓋側')+pR('U')+nR('U')+nR('L')+pR('L')+pdR('L','L','舌側')+pdR('L','B','頬側')+mR('L')+'</table>'}
 function mobRow(arch){let h='<tr class="pdx"><td class="lb">動揺度</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t;const cc=cur<SEQ.length&&SEQ[cur].mob&&tid(SEQ[cur])===id?'cur':'';h+=`<td colspan=3 class="mob tb ${cc} ${miss.has(id)?'miss':''}" onclick="tapMob('${id}')">${mob[id]??''}</td>`});return h+'<td class="lb re"></td></tr>'}
 function pqRow(arch){let h='<tr><td class="lb">プラーク</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t,p=plq[id]||{};h+=`<td colspan=3 class="pq tb ${miss.has(id)?'miss':''}"><svg viewBox="0 0 60 26" preserveAspectRatio="none">
-<polygon points="0,0 60,0 30,13" class="${p.a?'on':''}" onclick="tapPq('${id}','a')"/><polygon points="60,0 60,26 30,13" class="${p.b?'on':''}" onclick="tapPq('${id}','b')"/>
-<polygon points="0,26 60,26 30,13" class="${p.c?'on':''}" onclick="tapPq('${id}','c')"/><polygon points="0,0 0,26 30,13" class="${p.d?'on':''}" onclick="tapPq('${id}','d')"/></svg></td>`});return h+'<td class="lb re"></td></tr>'}
+<polygon points="0,0 60,0 30,13" class="${p.a?'on':''}" onclick="openPq('${id}')"/><polygon points="60,0 60,26 30,13" class="${p.b?'on':''}" onclick="openPq('${id}')"/>
+<polygon points="0,26 60,26 30,13" class="${p.c?'on':''}" onclick="openPq('${id}')"/><polygon points="0,0 0,26 30,13" class="${p.d?'on':''}" onclick="openPq('${id}')"/></svg></td>`});return h+'<td class="lb re"></td></tr>'}
 function numRow(arch){let h='<tr class="num"><td class="lb">右</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t;h+=`<td colspan=3 class="${miss.has(id)&&!TS[id]?'missn':''}" onclick="tapNum('${id}')">${t}</td>`});return h+'<td class="lb re">左</td></tr>'}
 function draw(){
  if(document.body.classList.contains('stack'))pcard.innerHTML=prevChart();
@@ -521,4 +527,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-14:45</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-14:50</div></body></html>
