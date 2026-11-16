@@ -361,7 +361,7 @@ const KW=[['じゅう','10 '],['いち','1'],['さん','3'],['よん','4'],['ろ
 function norm(s){s=s.replace(/ゼロ|れい/g,'0');const T={いち:1,一:1,に:2,二:2,さん:3,三:3,よん:4,し:4,四:4,ご:5,五:5};s=s.replace(/(じゅう|十)\s*(いち|一|に|二|さん|三|よん|し|四|ご|五|[1-5１-５])/g,(m,a,b)=>' 1'+(T[b]||(+b.replace(/[１-５]/,c=>c.charCodeAt(0)-0xFF10)))+' ');s=s.replace(/十/g,' 10 ');s=s.replace(/[〇一二三四五六七八九１-９]/g,c=>KN[c]);KW.forEach(([a,b])=>{s=s.split(a).join(b)});return s}
 // 聞き間違いやすい言葉を直す
 const FIXW=[[/ひだり\s*うえ|左うえ|ひだり上/g,'左上'],[/みぎ\s*うえ|右うえ|みぎ上/g,'右上'],[/ひだり\s*した|左した|ひだり下/g,'左下'],[/みぎ\s*した|右した|みぎ下/g,'右下'],
- [/近遠心|きんえんしん|禁煙し|禁煙神|禁煙心|禁煙|筋遠心|近縁心|近縁/g,'近遠心'],[/近心|禁親|近親|金親|筋診|金心|均心|禁心|筋心|筋親|きんしん|キンシン|金針|琴線|緊縮|検診|健診|献身|検針|けんしん/g,'近心'],[/(?<!近)遠心|栄進|営進|栄信|英進|変身|返心|円心|延伸|遠信|演心|園芯|えんしん|エンシン|炎心|円陣/g,'遠心'],[/中央|ちゅうおう|チュウオウ|中尾|中王|中黄|中大/g,'中央'],
+ [/近遠心|きんえんしん|禁煙し|禁煙神|禁煙心|禁煙|筋遠心|近縁心|近縁/g,'近遠心'],[/近心|禁親|近親|金親|筋診|金心|均心|禁心|筋心|筋親|きんしん|キンシン|金針|琴線|緊縮|検診|健診|献身|検針|けんしん/g,'近心'],[/(?<!近)遠心|栄進|営進|栄信|英進|変身|返心|返信|へんしん|ヘンシン|返診|円心|延伸|遠信|演心|園芯|えんしん|エンシン|炎心|円陣/g,'遠心'],[/中央|ちゅうおう|チュウオウ|中尾|中王|中黄|中大/g,'中央'],
  [/しゅっけつ|出結|出欠|出決/g,'出血'],[/禁止/g,'近心'],[/全て|ぜんぶ|すべて|全歩/g,'全部'],[/強足|胸足|頬足|教足|京側|強側/g,'頬側'],[/購買|郊外|校外|公害|高倍速|高快速|高解像|後買い/g,'口蓋側'],[/左腕/g,'左上'],[/右腕/g,'右上'],[/小判/g,'5番'],[/ビオピー|ビーオーピー|ビーオピー|ビオピ|ＢＯＰ|ＢｏＰ|ボップ|ぼっぷ|b\s*o\s*p/gi,'出血'],[/童謡|動揺度/g,'動揺'],[/炭酸/g,' 3 3 '],[/酸/g,' 3 '],[/口蓋側\s*側/g,'口蓋側'],[/([0-9０-９一二三四五六七八])\s*(晩|板|盤|ばん)/g,'$1番'],[/はんたいがわ|反対川|反対かわ/g,'反対側'],[/反対側\s*(行きます|行く|いきます)/g,'反対側 '],[/頬側|朝食|ちょうしょく|きょうそく|キョウソク|強側|胸側|教則|共則|協側|強速|供則|今日側|今日即|狭側/g,'頬側'],[/舌側|ぜっそく|ゼッソク|絶息|舌即|絶側/g,'舌側'],[/口蓋側|こうがいそく|口外側|校外側|公害側|郊外側|口外即|口蓋/g,'口蓋側'],[/(生き|逝き|いき|行き)(ます|まーす|ましょう)/g,'行きます'],[/排尿|はいにょう|はいのう|排膿|配納|背嚢|はいのー|肺膿|肺の|杯の|はいの|排の|ハイノー/g,'排膿'],[/(左上|右上|左下|右下)\s*の\s*/g,'$1'],[/いんぷらんと|インプラ(?!ント)/g,'インプラント'],[/はんまいふく|半まいふく|半マイフク|半埋没|はん埋伏/g,'半埋伏'],[/まいふく|マイフク|埋没/g,'埋伏'],[/ざんこん|残婚|ザンコン|残今|[CcＣｃ]\s*[4４]|シーフォー|シーヨン|しーよん/g,'残根'],[/ちりょうちゅう|治療チュウ/g,'治療中'],[/排膿\s*(だけ|のみ)/g,'排膿だけ'],[/ばん/g,'番']];
 function fixWords(t){FIXW.forEach(([r,w])=>{t=t.replace(r,w)});return t}
 let bmode='出血',lastQ=null,lastT=null,BH=[],PEND=null,lastN=null,bph=0; // bph 0=はじめの側(7→1) 1=反対側(1→7) // PEND：番号が聞こえて場所待ちの歯（黄色）
@@ -373,6 +373,7 @@ function hear(raw){if(!raw)return;let s=fixWords(raw.trim());
  if(m){const pre=s.slice(0,m.index).trim(),rest=s.slice(m.index+m[0].length).trim();if(pre)hear1(pre);hear1(m[0]);if(rest)hear1(rest);return}
  m=s.match(/(頬側|舌側|口蓋側)\s*(から)?\s*(行きます|行く|いく)/);
  if(m){const rest=s.slice(m.index+m[0].length).trim();if(m[2]&&pause===null&&!UNDO.length)heardMsg('「'+raw.trim()+'」 → '+m[1]+'からはじめます');else hear1(m[1]+'行きます');if(rest)hear1(rest);return}
+ m=s.match(/(次|つぎ)\s*(に|へ)?\s*(行きます|行く|いく|進む)?\s*$/);if(m&&m.index>0){const pre=s.slice(0,m.index).trim();if(pre){hear1(pre);hear1('次');return}}
  hear1(s)}
 let QUIET=false;
 function hear1(raw){
@@ -528,4 +529,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-15:00</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-15:05</div></body></html>
