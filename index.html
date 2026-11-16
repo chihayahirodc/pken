@@ -166,7 +166,7 @@ td.pend{background:#FEF08A!important;box-shadow:inset 0 0 0 2px #EAB308}
     <table class="ch" id="up"></table>
     <div class="mid"></div>
     <table class="ch" id="lo"></table>
-    <div class="lg"><span><b style="display:inline-block;width:16px;height:16px;border:2px solid var(--red);border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 出血は赤丸・<b style="display:inline-block;width:16px;height:16px;border:2px solid #2563EB;border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 排膿は青丸・両方は二重丸</span><span style="color:var(--red);font-weight:600">4</span><span>=4mm以上は赤字</span><span><u></u>プラーク（4面をタップ）</span><span>動揺度は数字をタップで 0→1→2→3</span><span>「歯の登録」→種類をえらんで歯の番号をタップ（欠損＝斜線・インプラント・埋伏歯・半埋伏歯・残根）</span></div>
+    <div class="lg"><span><b style="display:inline-block;width:16px;height:16px;border:2px solid var(--red);border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 出血は赤丸・<b style="display:inline-block;width:16px;height:16px;border:2px solid #2563EB;border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 排膿は青丸・両方は二重丸</span><span style="color:var(--red);font-weight:600">4</span><span>=4mm以上は赤字</span><span><u></u>プラーク（4面をタップ）</span><span>動揺度は数字をタップで 0→1→2→3</span><span>歯の登録：欠損＝斜線、IP・埋伏・半埋・残根</span></div>
   </div>
   <div class="row">
     <div class="card pdx">
@@ -308,7 +308,7 @@ function mobRow(arch){let h='<tr class="pdx"><td class="lb">動揺度</td>';teet
 function pqRow(arch){let h='<tr><td class="lb">プラーク</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t,p=plq[id]||{};h+=`<td colspan=3 class="pq tb ${miss.has(id)?'miss':''}"><svg viewBox="0 0 60 26" preserveAspectRatio="none">
 <polygon points="0,0 60,0 30,13" class="${p.a?'on':''}" onclick="tapPq('${id}','a')"/><polygon points="60,0 60,26 30,13" class="${p.b?'on':''}" onclick="tapPq('${id}','b')"/>
 <polygon points="0,26 60,26 30,13" class="${p.c?'on':''}" onclick="tapPq('${id}','c')"/><polygon points="0,0 0,26 30,13" class="${p.d?'on':''}" onclick="tapPq('${id}','d')"/></svg></td>`});return h+'<td class="lb re"></td></tr>'}
-function numRow(arch){let h='<tr class="num"><td class="lb">右</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t;h+=`<td colspan=3 class="${miss.has(id)&&!TS[id]?'missn':''}" onclick="tapNum('${id}')">${t}${TS[id]?`<span style="display:inline-block;margin-left:3px;font-size:10px;line-height:1.2;padding:1px 4px;border-radius:6px;color:#fff;background:${TSC[TS[id]]};vertical-align:middle">${TS[id]==='IP'?'IP':TS[id]}</span>`:''}</td>`});return h+'<td class="lb re">左</td></tr>'}
+function numRow(arch){let h='<tr class="num"><td class="lb">右</td>';teethRow(arch).forEach(([q,t])=>{const id=q+t;h+=`<td colspan=3 class="${miss.has(id)&&!TS[id]?'missn':''}" onclick="tapNum('${id}')">${t}${TS[id]?`<sup style="font-size:10px;font-weight:600;color:#64748B;margin-left:1px;letter-spacing:-.5px">${TS[id]==='IP'?'IP':TS[id]==='半埋伏'?'半埋':TS[id]}</sup>`:''}</td>`});return h+'<td class="lb re">左</td></tr>'}
 function draw(){
  if(document.body.classList.contains('stack'))pcard.innerHTML=prevChart();
  document.getElementById('up').innerHTML=mobRow('U')+prevRow('U','B')+pdRow('U','B','頬側')+prevRow('U','P')+pdRow('U','P','口蓋側')+pqRow('U')+numRow('U');
@@ -495,4 +495,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-13:05</div></body></html>
+</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-13:15</div></body></html>
