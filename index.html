@@ -273,7 +273,7 @@ function heardMsg(m){document.getElementById('heard').innerHTML='<i>'+m+'</i>'}
 let UNDO=[];
 function say(r,m){document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${r}」 → ${m}`;if(!QUIET){LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:r,msg:m});drawLog()}}
 function toFace(si){PEND=null;lastN=null;bph=0;pause=null;bmode='出血';lastQ=null;lastT=null;const i=SEQ.findIndex(q=>q.si===si);cur=i<0?SEQ.length:skip(i);draw()}
-function jumpTo(q,t,sw,site){if(!q){const f0=pause!==null?pause:(SEQ[cur]?SEQ[cur].si:0);if(f0>3)return false;const jw=SEGS[f0].teeth[0][0][0];const sf0=sw==='口蓋側'?'P':sw==='頬側'?'B':sw==='舌側'?'L':null;const fi=sf0?[0,1,2,3].find(i=>SEGS[i].surf===sf0&&SEGS[i].teeth[0][0][0]===jw):f0;if(fi===undefined)return false;const ids=SEQ.map((x,i)=>i).filter(i=>SEQ[i].si===fi&&SEQ[i].t===t&&!SEQ[i].mob);if(!ids.length)return false;const bef=ids.filter(i=>i<cur);q=SEQ[bef.length?bef[bef.length-1]:ids[0]].q;sw=null;var siF=fi} // 「6番 323」番号だけ＝いまの面のその歯（直前に測った方）
+function jumpTo(q,t,sw,site){if(!q){const f0=pause!==null?pause:(SEQ[cur]?SEQ[cur].si:0);if(f0>3)return false;const jw=SEGS[f0].teeth[0][0][0];const sf0=sw==='口蓋側'?'P':sw==='頬側'?'B':sw==='舌側'?'L':null;const fi=sf0?[0,1,2,3].find(i=>SEGS[i].surf===sf0&&SEGS[i].teeth[0][0][0]===jw):f0;if(fi===undefined)return false;const ids=SEQ.map((x,i)=>i).filter(i=>SEQ[i].si===fi&&SEQ[i].t===t&&!SEQ[i].mob);if(!ids.length)return false;const bef=ids.filter(i=>i<cur);const cp=pause!==null&&last>=0?SEQ[last]:(SEQ[cur]||SEQ[last]);const cq=cp?cp.q:null;q=ids.some(i=>SEQ[i].q===cq)?cq:SEQ[bef.length?bef[bef.length-1]:ids[0]].q;sw=null;var siF=fi} // 「6番 323」番号だけ＝いまの面のその歯（直前に測った方）
  const jaw=q[0],sf=sw==='口蓋側'?'P':sw==='頬側'?'B':sw==='舌側'?'L':null;const has=i=>SEGS[i]&&SEGS[i].teeth&&SEGS[i].teeth.some(x=>x[0]===q&&x[1]===t);let si;
  if(sf)si=[0,1,2,3].find(i=>SEGS[i].surf===sf&&SEGS[i].teeth[0][0][0]===jaw&&has(i));else{const c=pause!==null?pause+1:(SEQ[cur]?SEQ[cur].si:0);si=has(c)?c:([0,1,2,3].find(i=>i>=c&&has(i))??[0,1,2,3].find(has))}
  if(typeof siF==='number')si=siF;if(si===undefined)return false;let i=SEQ.findIndex(x=>x.si===si&&x.q===q&&x.t===t);if(i<0)return false;if(site){const sc={遠心:'D',近心:'M',中央:'C'}[site];const j=SEQ.findIndex(x=>x.si===si&&x.q===q&&x.t===t&&x.site===sc);if(j>=0)i=j}miss.delete(q+t);if(i<cur&&!EDIT)EDIT={ret:cur,pause,si,fix:1};pause=null;bmode='出血';lastQ=null;lastT=null;cur=i;draw();return true} // 測った所に戻って言い直す：終わったら元の場所へ
@@ -357,7 +357,7 @@ let QUIET=false;
 function hear1(raw){
  if(!raw)return;const s0=raw.trim();let s=fixWords(s0);let msg='';
  {let jm=norm(s).match(/^\s*(右上|左上|右下|左下)?\s*([1-8])\s*(番)?\s*(頬側|舌側|口蓋側)?\s*(遠心|近心|中央)?\s*(から)?\s*([0-9\s]*)$/);if(jm&&!jm[1]&&!jm[3])jm=null;if(jm)jm=[jm[0],jm[1],jm[2],jm[4],jm[6],jm[7],jm[5]]; // 「左下7番 頬側から 333」＝その歯から測りはじめる
-  if(jm&&(jm[3]||jm[4]||/[0-9]/.test(jm[5]))&&!(SEQ[cur]&&SEQ[cur].mob)&&jumpTo(jm[1]?QQ[jm[1]]:null,+jm[2],jm[3],jm[6])){const nm=SEGS[SEQ[cur].si].name;const qn={UR:'右上',UL:'左上',LR:'右下',LL:'左下'}[SEQ[cur].q];const d=digitsOf(jm[5])||[];d.forEach(c=>put(c));say(s0,`${nm} ${qn}${jm[2]}番${jm[6]?' '+jm[6]:''}から${d.length?' '+d.length+'点 入れました':'はじめます'}`);return}}
+  if(jm&&(jm[3]||jm[4]||/[0-9]/.test(jm[5])||pause===null)&&!(SEQ[cur]&&SEQ[cur].mob)&&jumpTo(jm[1]?QQ[jm[1]]:null,+jm[2],jm[3],jm[6])){const nm=SEGS[SEQ[cur].si].name;const qn={UR:'右上',UL:'左上',LR:'右下',LL:'左下'}[SEQ[cur].q];const d=digitsOf(jm[5])||[];d.forEach(c=>put(c));say(s0,`${nm} ${qn}${jm[2]}番${jm[6]?' '+jm[6]:''}から${d.length?' '+d.length+'点 入れました':'はじめます'}`);return}}
  if(/動揺/.test(s)&&/(行き|いき)/.test(s)){pause=null;bmode='出血';lastQ=null;lastT=null;cur=skip(SEQ.findIndex(q=>q.mob));draw();say(s0,'動揺度へ（上は左上8から）');return}
  if(/^(下|した|上|うえ)\s*(の)?\s*(歯)?\s*(行き|いき)/.test(s.replace(/[、。]/g,''))){const lo=/^(下|した)/.test(s);toFace(lo?2:0);say(s0,(lo?'下 頬側':'上 口蓋側')+'へ');return}
  if(/(出血|排膿)/.test(s)&&/(行き|いき|行く|いく)/.test(s)){bmode=/排膿/.test(s)?'排膿':'出血';if(pause===null){pause=bleedFace();draw()}if(pause!==null)lastQ=SEGS[pause].teeth[0][0];lastT=null;lastN=null;bph=0;document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → これから「左上7番 近心」のように歯と場所だけで ${bmode} をつけます`;if(!QUIET)LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:bmode+'モード'});drawLog();return}
@@ -419,7 +419,7 @@ function mic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition
      if(!r.isFinal&&RDONE[i]<d.length&&d[RDONE[i]]!==10&&RDONE[i]===d.length-1){const v=d[RDONE[i]];HOLD={i,v,at:RDONE[i],tm:setTimeout(flushHold,v===1?550:300)}}
      if(r.isFinal){const n=upto-from;document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${t.trim()}」 → ${d.length}点`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:t.trim(),msg:d.length+'点 入れました（すぐ入れ）'});drawLog()}
      else document.getElementById('heard').innerHTML=`<i>聞き取り中</i>「${t.trim()}」`;
-   }else if(!r.isFinal&&!(RDONE[i]>0)&&(pause!==null||/出血|排膿|しゅっけつ/.test(t))){ // 出血の読み上げは聞こえた途中から先に印をつける（確定したら付け直す）
+   }else if(!r.isFinal&&!(RDONE[i]>0)&&(pause!==null||/出血|排膿|しゅっけつ/.test(t)||/[1-8１-８一二三四五六七八]\s*(番|晩|板|ばん)/.test(t))){ // 出血の読み上げは聞こえた途中から先に印をつける（確定したら付け直す）
      if(!RSNAP[i])RSNAP[i]=snap();else restore(RSNAP[i]);QUIET=true;try{hear(t)}finally{QUIET=false}
    }else if(r.isFinal&&!(RDONE[i]>0)){if(RSNAP[i]){restore(RSNAP[i]);delete RSNAP[i]}hear(t)}
    else if(r.isFinal&&RDONE[i]>0){/* 数字で始まり途中で言葉が入った：入れた分は残し、言葉はそのまま読む */hear(t.replace(/^[\s0-9０-９〇一二三四五六七八九]+/,''))}
@@ -506,4 +506,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-14:35</div></body></html>
+</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-14:50</div></body></html>
