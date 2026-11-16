@@ -416,7 +416,8 @@ function hear1(raw){
  else{const d=digitsOf(s)||norm(s).replace(/[^0-9]/g,'').split('').map(Number);d.forEach(c=>put(c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
  document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → ${msg}`;if(!QUIET){LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:(s!==s0?'['+s+'] ':'')+msg});drawLog()}draw();
 }
-let rec=null,on=false;let RDONE={},RAPP={},RSNAP={},HOLD=null;
+let rec=null,on=false;let RDONE={},RAPP={},RSNAP={},RMOB={},HOLD=null;
+function mobDigits(t){let x=norm(fixWords(t).replace(/なし|ない|ゼロ|ぜろ|れい|零/g,'0')).replace(/(右上|左上|右下|左下)?\s*[1-8]\s*番/g,' ').replace(/動揺度?/g,' ').replace(/[\s、。,.・]/g,'');if(!x||!/^[0-3]+$/.test(x))return null;return x.split('').map(Number)}
 function flushHold(){if(!HOLD)return;clearTimeout(HOLD.tm);const h=HOLD;HOLD=null;if((RDONE[h.i]||0)===h.at&&pause===null){put(h.v);(RAPP[h.i]=RAPP[h.i]||[]).push(h.v);RDONE[h.i]=h.at+1}} // 最後の数字も少し待って入れる
 function snap(){return JSON.stringify({pd,bl,pu,mob,miss:[...miss],cur,last,pause,lastQ,lastT,bmode,UNDO,BH,lastN,bph,NA:[...NA],EDIT})}
 function restore(j){const o=JSON.parse(j);[[pd,o.pd],[bl,o.bl],[pu,o.pu],[mob,o.mob]].forEach(([a,b])=>{Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,b)});miss.clear();o.miss.forEach(x=>miss.add(x));cur=o.cur;last=o.last;pause=o.pause;lastQ=o.lastQ;lastT=o.lastT||null;bmode=o.bmode;UNDO=o.UNDO||[];BH=o.BH||[];lastN=o.lastN??null;bph=o.bph||0;NA.clear();(o.NA||[]).forEach(x=>NA.add(x));EDIT=o.EDIT||null}
@@ -433,6 +434,7 @@ function mic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition
  rec=new SR();rec.lang='ja-JP';rec.continuous=true;rec.interimResults=true;RDONE={};
  rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i],t=r[0].transcript,d=digitsOf(t);
    if(HOLD){if(HOLD.i!==i)flushHold();else{clearTimeout(HOLD.tm);HOLD=null}}
+   if((pause===null&&SEQ[cur]&&SEQ[cur].mob)||RMOB[i]){const md=mobDigits(t);if(md){RMOB[i]=1;const ap=RAPP[i]||[];if(ap.some((v,j)=>v!==md[j])){for(let j=0;j<ap.length;j++)back();RAPP[i]=[]}const ap2=RAPP[i]=RAPP[i]||[];for(let j=ap2.length;j<md.length;j++){put(md[j]);ap2.push(md[j])}RDONE[i]=md.length;if(r.isFinal){document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${t.trim()}」 → 動揺度 ${md.length}本`;LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:t.trim(),msg:'動揺度 '+md.length+'本 入れました（すぐ入れ）'});drawLog()}else document.getElementById('heard').innerHTML=`<i>聞き取り中</i>「${t.trim()}」`;continue}} /* 動揺度は途中結果からすぐ入れる */
    if(d&&pause===null&&!(SEQ[cur]&&SEQ[cur].mob)){ // 数字だけの言葉は、聞こえた順にすぐ入れる（最後の1つは確定を待つ）
      const ap=RAPP[i]||[];
      if(r.isFinal&&ap.some((v,j)=>v!==d[j])){for(let j=0;j<ap.length;j++)back();RAPP[i]=[];RDONE[i]=0} // 途中で聞き違えた分は消して入れ直す
@@ -447,7 +449,7 @@ function mic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition
    }else if(r.isFinal&&!(RDONE[i]>0)){if(RSNAP[i]){restore(RSNAP[i]);delete RSNAP[i]}hear(t)}
    else if(r.isFinal&&RDONE[i]>0){/* 数字で始まり途中で言葉が入った：入れた分は残し、言葉はそのまま読む */hear(t.replace(/^[\s0-9０-９〇一二三四五六七八九]+/,''))}
  }};
- rec.onstart=()=>{RDONE={};RAPP={};RSNAP={};if(HOLD){clearTimeout(HOLD.tm);HOLD=null}};
+ rec.onstart=()=>{RDONE={};RAPP={};RSNAP={};RMOB={};if(HOLD){clearTimeout(HOLD.tm);HOLD=null}};
  rec.onerror=e=>{if(e.error==='aborted'||e.error==='no-speech')return;const m={'not-allowed':'マイクが許可されていません。アドレス欄の左の「ぁあ」→「Webサイトの設定」→マイクを「許可」にしてください','service-not-allowed':'この画面では上の青いボタンのマイクが使えません。下の入力欄をタップして、キーボードの🎤で話してください','no-speech':'声が聞こえませんでした','audio-capture':'マイクが見つかりません','network':'ネットにつながっていません'}[e.error]||('エラー：'+e.error);document.getElementById('heard').innerHTML='<i>'+m+'</i>';LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:'（'+e.error+'）',msg:m});drawLog();if(e.error==='not-allowed'||e.error==='service-not-allowed'){try{tx.focus()}catch(x){};on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）'}};rec.onend=()=>{if(on){try{rec.start()}catch(x){}}};rec.start();on=true;b.classList.add('on');b.textContent='● 聞いています（押すと止まる）'}
 // 見本の途中の状態
 document.getElementById('dt').textContent='2026/11/13（金）';
@@ -529,4 +531,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-15:05</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-15:15</div></body></html>
