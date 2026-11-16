@@ -156,7 +156,7 @@ header{flex-wrap:wrap!important;row-gap:8px!important}header .f{font-size:15px!i
   <div class="f">カルテ番号 <b id="kno">1234</b></div>
   <div class="f" id="dt"></div>
   <div class="f">時間 <input type="time" id="t1" value="18:10" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px">〜<input type="time" id="t2" value="18:40" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px"></div>
-  <div class="f">担当 <b>内田</b></div>
+  <div class="f" id="tanto" onclick="openStaff()" style="cursor:pointer">担当 <b id="tnm">（タップで選ぶ）</b> ▾</div>
   <div class="sp"></div>
   <div class="mode" id="mode"><span class="on" onclick="setMode(0)">検査あり</span><span onclick="setMode(1)">プラークだけ</span></div>
   <div class="lay" id="lay"><span style="opacity:.8;cursor:default">前回</span><span onclick="setLay(0)">表示しない</span><span onclick="setLay(1)">行で</span><span onclick="setLay(2)">上下</span></div>
@@ -533,4 +533,15 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-15:50</div></body></html>
+
+/* 担当：Sheet「設定」E列の名字を読み、タップで選ぶ（iPadごとに最後の人を覚える） */
+let STAFF=null;function lsg(k){try{return localStorage.getItem(k)}catch(e){return null}}function lss(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function showTanto(){const n=lsg('pkenTanto');document.getElementById('tnm').textContent=n||'（タップで選ぶ）';document.getElementById('tanto').style.background=n?'':'#E03131'}
+function openStaff(){let o=document.getElementById('stz');if(!o){o=document.createElement('div');o.id='stz';o.style.cssText='position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:90;display:flex;align-items:center;justify-content:center';o.onclick=e=>{if(e.target===o)o.remove()};document.body.appendChild(o)}
+ const cur=lsg('pkenTanto');const box=t=>'<div style="background:#fff;border-radius:16px;padding:22px;min-width:520px;max-width:90vw"><div style="font-size:22px;font-weight:700;margin-bottom:14px">担当を選んでください</div>'+t+'<div style="text-align:right;margin-top:14px"><button onclick="document.getElementById(\'stz\').remove()" style="font-size:17px;padding:12px 24px;border-radius:10px;border:1px solid #ccd;background:#f4f6fa">閉じる</button></div></div>';
+ if(!STAFF){o.innerHTML=box('<div style="font-size:16px;color:#556">読み込み中…</div>');api('getStaff',{}).then(r=>{STAFF=(r||[]).filter(Boolean);openStaff()}).catch(e=>{o.innerHTML=box('<div style="font-size:16px;color:#c00">読み込めませんでした（'+e.message+'）</div>')});return}
+ if(!STAFF.length){o.innerHTML=box('<div style="font-size:16px;color:#556">まだ名前がありません。院長がSheet「設定」タブのE列に名字を書くと、ここに出ます。</div>');return}
+ o.innerHTML=box('<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'+STAFF.map(n=>'<button onclick="pickStaff(this.textContent)" style="font-size:22px;font-weight:700;padding:20px 10px;border-radius:12px;border:2px solid '+(n===cur?'#2563EB;background:#2563EB;color:#fff':'#ccd;background:#f8f9fc;color:#1E2A44')+'">'+n.replace(/</g,'&lt;')+'</button>').join('')+'</div>')}
+function pickStaff(n){lss('pkenTanto',n);showTanto();const o=document.getElementById('stz');if(o)o.remove()}
+showTanto();
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-16:05</div></body></html>
