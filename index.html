@@ -32,7 +32,7 @@ table.ch td.mob{cursor:pointer;color:var(--g)}
 table.ch tr.num td{height:24px;border:none;font-size:16px;color:var(--g);cursor:pointer}
 table.ch tr.num td.lb{background:none;color:var(--g);font-size:15px}
 table.ch td.re{width:30px;text-align:center;padding:0}
-table.ch td.miss{background:repeating-linear-gradient(45deg,#eceff4,#eceff4 4px,#f7f8fa 4px,#f7f8fa 8px)!important;color:transparent!important}
+table.ch td.miss{background:#f3f4f6!important;color:transparent!important}
 table.ch tr.num td.missn{color:#bbb;text-decoration:line-through}
 td.pq{padding:0!important;cursor:pointer}
 td.pq svg{display:block;width:100%;height:26px}
@@ -466,7 +466,11 @@ SEQ.forEach((p,i)=>{if(p.mob)return;const k=key(p);const v=pd[k]||3;PPD[k]=Math.
 function bguide(){let g=document.getElementById('bguide');if(!g){g=document.createElement('div');g.id='bguide';g.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:58px;z-index:55;background:#E03131;border:4px solid #fff;border-radius:18px;box-shadow:0 0 0 3px #E03131,0 10px 28px rgba(0,0,0,.35);padding:12px 16px;display:none;align-items:center;gap:16px;max-width:94vw';document.body.appendChild(g)}
  if(pause===null){g.style.display='none';return}const nx=SEGS[pause+1];const reading=bmode&&(BH.length||lastT||lastN!==null);
  g.innerHTML=`<div><div style="font-size:15px;color:#FFE3E3">${SEGS[pause].name} の数値入力 終わり</div><div style="font-size:26px;font-weight:bold;color:#fff">🩸 ${reading?'出血部位を読み上げ中…':'出血部位をお願いします'}</div><div style="font-size:14px;color:#FFE3E3">「出血 行きます」→「7番 遠心」… 終わったら「次」</div></div><button onclick="nextSeg()" style="font-size:22px;font-weight:bold;background:#fff;color:#1E2A44;border:0;border-radius:12px;padding:14px 22px;white-space:nowrap">次へ ▶${nx?'<br><span style=&quot;font-size:15px;font-weight:normal&quot;>'+nx.name+'</span>':''}</button>`;g.style.display='flex'}
-const _draw=draw;draw=function(){_draw();bguide();const nb=document.getElementById('nxb');if(pause!==null){const nx=SEGS[pause+1];document.getElementById('now').textContent=SEGS[pause].name+' 終わり';document.getElementById('nowp').textContent='「出血 行きます」→「7番 遠心」のように歯と場所 → 終わったら「次」か「'+(nx?nx.name.split(' ')[1]:'次')+' 行きます」'+(nx?'で '+nx.name+' へ':'');nb.style.display='inline-block'}else nb.style.display='none'};
+function drawSlash(){document.querySelectorAll('.slash').forEach(e=>e.remove());['up','lo'].forEach(tb=>{const t=document.getElementById(tb);if(!t)return;const box=t.parentElement;if(getComputedStyle(box).position==='static')box.style.position='relative';const br=box.getBoundingClientRect();
+ miss.forEach(id=>{const cs=t.querySelectorAll(`td[onclick*="'${id}"]`);if(!cs.length)return;let l=1e9,tp=1e9,r=-1e9,b=-1e9;cs.forEach(c=>{if(/tapNum/.test(c.getAttribute('onclick')))return;const x=c.getBoundingClientRect();l=Math.min(l,x.left);tp=Math.min(tp,x.top);r=Math.max(r,x.right);b=Math.max(b,x.bottom)});if(r<l)return;
+  const d=document.createElement('div');d.className='slash';d.style.cssText=`position:absolute;pointer-events:none;left:${l-br.left+box.scrollLeft}px;top:${tp-br.top+box.scrollTop}px;width:${r-l}px;height:${b-tp}px`;d.innerHTML='<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="2" y1="98" x2="98" y2="2" stroke="#334155" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>';box.appendChild(d)})})} // 欠損は用紙と同じく斜線で消す
+addEventListener('resize',()=>drawSlash());
+const _draw=draw;draw=function(){_draw();bguide();drawSlash();const nb=document.getElementById('nxb');if(pause!==null){const nx=SEGS[pause+1];document.getElementById('now').textContent=SEGS[pause].name+' 終わり';document.getElementById('nowp').textContent='「出血 行きます」→「7番 遠心」のように歯と場所 → 終わったら「次」か「'+(nx?nx.name.split(' ')[1]:'次')+' 行きます」'+(nx?'で '+nx.name+' へ':'');nb.style.display='inline-block'}else nb.style.display='none'};
 drawTools();setLay(1);cur=skip(0);drawRec();drawGL();draw();
 </script><div id="tbar" style="position:fixed;left:0;right:0;bottom:0;z-index:50;background:#FFF8E1;border-top:2px solid #F0B429;padding:6px 12px;font-size:13px;display:flex;gap:10px;align-items:center">
 <b style="color:#8A5A00">声の試し版</b><span>保存はされません。聞き取った言葉の記録だけ「送る」で院長のSheetに残せます（数字と部位だけ・名前なし）。</span>
@@ -485,4 +489,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-12:35</div></body></html>
+</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-12:45</div></body></html>
