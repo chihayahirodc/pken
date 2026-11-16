@@ -184,7 +184,7 @@ body.stack table.ch td{height:22px}body.stack table.ch tr.num td{height:18px;fon
         <button class="mic" id="mic" onclick="mic()">🎤 声で入力（押してから話す）</button>
         <div class="heard" id="heard"><i>聞き取った言葉がここに出ます</i></div>
         <div class="try"><input id="tx" autocomplete="off" placeholder="ここをタップ → キーボードの🎤を押して話す（文字でも可）" style="font-size:18px"><button onclick="txFlush(true)">入れる</button></div>
-        <div class="ex">話し方の例 ・数字だけ「3 2 4」→3点入って次へ ・「なし」→欠損にして次の歯へ ・「戻る」→ひとつ前へ<br>・面が終わると止まる →「出血 行きます」→「7番 遠心」「6番 近遠心」「4番 全部」と歯と場所だけ →「反対側」で左右を入れかえ ・「3番 近心 排膿」→その場所だけ二重丸（「排膿だけ」なら青丸）<br>・終わったら「次」か「頬側 行きます」「舌側 行きます」で次の面へ ・動揺度は「1」「2」「なし」で歯ごとに進む</div>
+        <div class="ex">話し方の例 ・数字だけ「3 2 4」→3点入って次へ ・「なし」→欠損にして次の歯へ ・「戻る」→ひとつ前へ<br>・面が終わると止まる →「出血 行きます」→「7番 遠心」「6番 近遠心」「4番 全部」と歯と場所だけ →「反対側」で左右を入れかえ ・「3番 近心 排膿」→その場所だけ二重丸（「排膿だけ」なら青丸）・印の間違いは「戻る」か「消して」<br>・終わったら「次」「頬側 行きます」、または そのまま数字「3 3 3」や「左下7番 頬側から」で次の面へ ・「動揺 行きます」→「1」「2」「なし」</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px"><button onclick="showCmp()" style="flex:1;height:36px;border:none;border-radius:8px;background:var(--g);color:#fff;font-weight:600">前回と比べる（PCR・BoP）</button></div>
       <div class="stats" style="margin-top:8px">
@@ -269,6 +269,11 @@ function adv(from,to){const a=SEQ[from];if(a&&!a.mob&&(to>=SEQ.length||SEQ[to].s
 function nextSeg(){const ps=pause;pause=null;bmode='出血';lastQ=null;lastT=null;if(ps!==null&&cur<SEQ.length&&SEQ[cur].si===ps){let i=SEQ.findIndex(q=>q.si>ps);cur=i<0?SEQ.length:skip(i)}draw();heardMsg('次の面の検査を始めます')}
 function heardMsg(m){document.getElementById('heard').innerHTML='<i>'+m+'</i>'}
 let UNDO=[];
+function say(r,m){document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${r}」 → ${m}`;if(!QUIET){LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:r,msg:m});drawLog()}}
+function toFace(si){pause=null;bmode='出血';lastQ=null;lastT=null;const i=SEQ.findIndex(q=>q.si===si);cur=i<0?SEQ.length:skip(i);draw()}
+function jumpTo(q,t,sw){const jaw=q[0],sf=sw==='口蓋側'?'P':sw==='頬側'?'B':sw==='舌側'?'L':null;const has=i=>SEGS[i]&&SEGS[i].teeth&&SEGS[i].teeth.some(x=>x[0]===q&&x[1]===t);let si;
+ if(sf)si=[0,1,2,3].find(i=>SEGS[i].surf===sf&&SEGS[i].teeth[0][0][0]===jaw&&has(i));else{const c=pause!==null?pause+1:(SEQ[cur]?SEQ[cur].si:0);si=has(c)?c:([0,1,2,3].find(i=>i>=c&&has(i))??[0,1,2,3].find(has))}
+ if(si===undefined)return false;const i=SEQ.findIndex(x=>x.si===si&&x.q===q&&x.t===t);if(i<0)return false;miss.delete(q+t);pause=null;bmode='出血';lastQ=null;lastT=null;cur=i;draw();return true}
 function put(v){if(pause!==null){heardMsg('出血部位を読み上げ中です。終わったら「次」（または 次へ▶）');return}if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}UNDO.push({k:'v',i:cur});last=cur;adv(cur,skip(cur+1));draw()}
 function bleedLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);bl[k]=!bl[k];draw()}
 function back(){pause=null;const h=UNDO.pop();if(h){cur=h.i;last=h.i-1;if(h.k==='m')miss.delete(h.id);else if(SEQ[h.i].mob)delete mob[tid(SEQ[h.i])];else delete pd[key(SEQ[h.i])];draw();return} // 「なし」も戻るで取り消す
@@ -320,20 +325,25 @@ const KW=[['じゅう','10 '],['いち','1'],['さん','3'],['よん','4'],['ろ
 function norm(s){s=s.replace(/ゼロ|れい/g,'0');const T={いち:1,一:1,に:2,二:2,さん:3,三:3,よん:4,し:4,四:4,ご:5,五:5};s=s.replace(/(じゅう|十)\s*(いち|一|に|二|さん|三|よん|し|四|ご|五|[1-5１-５])/g,(m,a,b)=>' 1'+(T[b]||(+b.replace(/[１-５]/,c=>c.charCodeAt(0)-0xFF10)))+' ');s=s.replace(/十/g,' 10 ');s=s.replace(/[〇一二三四五六七八九１-９]/g,c=>KN[c]);KW.forEach(([a,b])=>{s=s.split(a).join(b)});return s}
 // 聞き間違いやすい言葉を直す
 const FIXW=[[/ひだり\s*うえ|左うえ|ひだり上/g,'左上'],[/みぎ\s*うえ|右うえ|みぎ上/g,'右上'],[/ひだり\s*した|左した|ひだり下/g,'左下'],[/みぎ\s*した|右した|みぎ下/g,'右下'],
- [/近遠心|きんえんしん|禁煙し|禁煙神|禁煙心|禁煙|筋遠心|近縁心|近縁/g,'近遠心'],[/近心|禁親|近親|金親|筋診|金心|均心|禁心|筋心|筋親|きんしん|キンシン|金針|琴線|緊縮|検診|健診|献身|検針|けんしん/g,'近心'],[/(?<!近)遠心|返信|変身|返心|円心|延伸|遠信|演心|園芯|えんしん|エンシン|炎心|円陣/g,'遠心'],[/中央|ちゅうおう|チュウオウ|中尾|中王|中黄|中大/g,'中央'],
- [/しゅっけつ|出結|出欠|出決/g,'出血'],[/禁止/g,'近心'],[/全て|ぜんぶ|すべて|全歩/g,'全部'],[/強足|胸足|頬足|教足|京側|強側/g,'頬側'],[/購買|郊外|校外|公害/g,'口蓋側'],[/口蓋側\s*側/g,'口蓋側'],[/([0-9０-９一二三四五六七八])\s*(晩|板|盤|ばん)/g,'$1番'],[/はんたいがわ|反対川|反対かわ/g,'反対側'],[/反対側\s*(行きます|行く|いきます)/g,'反対側 '],[/頬側|朝食|ちょうしょく|きょうそく|キョウソク|強側|胸側|教則|共則|協側|強速|供則|今日側|今日即|狭側/g,'頬側'],[/舌側|ぜっそく|ゼッソク|絶息|舌即|絶側/g,'舌側'],[/口蓋側|こうがいそく|口外側|校外側|公害側|郊外側|口外即|口蓋/g,'口蓋側'],[/(生き|逝き|いき|行き)(ます|まーす|ましょう)/g,'行きます'],[/はいのう|排膿|配納|背嚢|はいのー|肺膿|肺の|杯の|はいの|排の|ハイノー/g,'排膿'],[/(左上|右上|左下|右下)\s*の\s*/g,'$1'],[/排膿\s*(だけ|のみ)/g,'排膿だけ'],[/ばん/g,'番']];
+ [/近遠心|きんえんしん|禁煙し|禁煙神|禁煙心|禁煙|筋遠心|近縁心|近縁/g,'近遠心'],[/近心|禁親|近親|金親|筋診|金心|均心|禁心|筋心|筋親|きんしん|キンシン|金針|琴線|緊縮|検診|健診|献身|検針|けんしん/g,'近心'],[/(?<!近)遠心|栄進|営進|栄信|英進|変身|返心|円心|延伸|遠信|演心|園芯|えんしん|エンシン|炎心|円陣/g,'遠心'],[/中央|ちゅうおう|チュウオウ|中尾|中王|中黄|中大/g,'中央'],
+ [/しゅっけつ|出結|出欠|出決/g,'出血'],[/禁止/g,'近心'],[/全て|ぜんぶ|すべて|全歩/g,'全部'],[/強足|胸足|頬足|教足|京側|強側/g,'頬側'],[/購買|郊外|校外|公害|高倍速|高快速|高解像|後買い/g,'口蓋側'],[/左腕/g,'左上'],[/右腕/g,'右上'],[/小判/g,'5番'],[/ビオピー|ビーオーピー|ＢＯＰ|BOP|bop|ボップ/g,'出血'],[/童謡|動揺度/g,'動揺'],[/炭酸/g,' 3 3 '],[/酸/g,' 3 '],[/口蓋側\s*側/g,'口蓋側'],[/([0-9０-９一二三四五六七八])\s*(晩|板|盤|ばん)/g,'$1番'],[/はんたいがわ|反対川|反対かわ/g,'反対側'],[/反対側\s*(行きます|行く|いきます)/g,'反対側 '],[/頬側|朝食|ちょうしょく|きょうそく|キョウソク|強側|胸側|教則|共則|協側|強速|供則|今日側|今日即|狭側/g,'頬側'],[/舌側|ぜっそく|ゼッソク|絶息|舌即|絶側/g,'舌側'],[/口蓋側|こうがいそく|口外側|校外側|公害側|郊外側|口外即|口蓋/g,'口蓋側'],[/(生き|逝き|いき|行き)(ます|まーす|ましょう)/g,'行きます'],[/排尿|はいにょう|はいのう|排膿|配納|背嚢|はいのー|肺膿|肺の|杯の|はいの|排の|ハイノー/g,'排膿'],[/(左上|右上|左下|右下)\s*の\s*/g,'$1'],[/排膿\s*(だけ|のみ)/g,'排膿だけ'],[/ばん/g,'番']];
 function fixWords(t){FIXW.forEach(([r,w])=>{t=t.replace(r,w)});return t}
-let bmode='出血',lastQ=null,lastT=null;const QQ={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};
+let bmode='出血',lastQ=null,lastT=null,BH=[];
+function undoBleed(){const r=BH.pop();if(!r)return '取り消す出血の印がありません';r.reverse().forEach(([k,b,p])=>{if(b)bl[k]=true;else delete bl[k];if(p)pu[k]=true;else delete pu[k]});draw();return 'さっきの出血の印を取り消しました'}const QQ={右上:'UR',左上:'UL',右下:'LR',左下:'LL'};
 // 合図（出血行きます／頬側行きます など）と、その前後の言葉を分けて順に読む
 function hear(raw){if(!raw)return;let s=fixWords(raw.trim());
  let m=s.match(/(出血|排膿)\s*(行きます|行く|いく)/);
  if(m){const pre=s.slice(0,m.index).trim(),rest=s.slice(m.index+m[0].length).trim();if(pre)hear1(pre);hear1(m[0]);if(rest)hear1(rest);return}
  m=s.match(/(頬側|舌側|口蓋側)\s*(から)?\s*(行きます|行く|いく)/);
- if(m){const rest=s.slice(m.index+m[0].length).trim();if(m[2])heardMsg('「'+raw.trim()+'」 → '+m[1]+'からはじめます');else hear1(m[1]+'行きます');if(rest)hear1(rest);return}
+ if(m){const rest=s.slice(m.index+m[0].length).trim();if(m[2]&&pause===null&&!UNDO.length)heardMsg('「'+raw.trim()+'」 → '+m[1]+'からはじめます');else hear1(m[1]+'行きます');if(rest)hear1(rest);return}
  hear1(s)}
 let QUIET=false;
 function hear1(raw){
  if(!raw)return;const s0=raw.trim();let s=fixWords(s0);let msg='';
+ {const jm=norm(s).match(/^\s*(右上|左上|右下|左下)\s*([1-8])\s*番?\s*(頬側|舌側|口蓋側)?\s*(?:遠心|近心)?\s*(から)?\s*([0-9\s]*)$/); // 「左下7番 頬側から 333」＝その歯から測りはじめる
+  if(jm&&(jm[3]||jm[4]||/[0-9]/.test(jm[5]))&&!(SEQ[cur]&&SEQ[cur].mob)&&jumpTo(QQ[jm[1]],+jm[2],jm[3])){const nm=SEGS[SEQ[cur].si].name;const d=digitsOf(jm[5])||[];d.forEach(c=>put(c));say(s0,`${nm} ${jm[1]}${jm[2]}番から${d.length?' '+d.length+'点 入れました':'はじめます'}`);return}}
+ if(/動揺/.test(s)&&/(行き|いき)/.test(s)){pause=null;bmode='出血';lastQ=null;lastT=null;cur=skip(SEQ.findIndex(q=>q.mob));draw();say(s0,'動揺度へ（上は左上8から）');return}
+ if(/^(下|した|上|うえ)\s*(の)?\s*(歯)?\s*(行き|いき)/.test(s.replace(/[、。]/g,''))){const lo=/^(下|した)/.test(s);toFace(lo?2:0);say(s0,(lo?'下 頬側':'上 口蓋側')+'へ');return}
  if(/(出血|排膿)/.test(s)&&/(行き|いき|行く|いく)/.test(s)){bmode=/排膿/.test(s)?'排膿':'出血';if(pause===null){const lp=last>=0?SEQ[last]:SEQ[cur];if(lp&&!lp.mob)pause=lp.si;draw()}if(pause!==null)lastQ=SEGS[pause].teeth[0][0];lastT=null;document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → これから「左上7番 近心」のように歯と場所だけで ${bmode} をつけます`;if(!QUIET)LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:bmode+'モード'});drawLog();return}
  if(pause!==null&&/(番|近心|中央|遠心|全部|反対側|右上|左上|右下|左下)/.test(s)&&!/(出血|排膿|動揺|行き|いき)/.test(s))s=s+' '+bmode;
  if(pause!==null&&/^\s*反対側\s*$/.test(s.replace(bmode,''))){lastT=null;if(lastQ)lastQ=lastQ[0]+(lastQ[1]==='L'?'R':'L');const nm={UR:'右上',UL:'左上',LR:'右下',LL:'左下'};document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → 反対側（${nm[lastQ]||''}）の出血を読みます`;if(!QUIET)LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:'反対側へ'});drawLog();return}
@@ -354,19 +364,20 @@ function hear1(raw){
    // 次の場所が来たら前の場所の印は決まる（used）。印の言葉がない場所は いまのモード（出血）。読み上げ中でなければ、言った印を全部に
    for(let k=G.length-1;k>=0;k--){if(G[k].B||G[k].P)G[k].used=1}
    if(tooth&&!tooth.hit)noSite++;lastT=tooth?tooth.id:null;
-   const gB=/出血/.test(s),gP=/排膿|はいのう/.test(s);let nb=0,np=0;G.forEach(g=>{let b,q;if(pause!==null){b=g.B||(!g.P&&bmode==='出血')||(g.P&&bmode==='出血'&&!g.only);q=g.P||(!g.B&&bmode==='排膿')}else{b=g.B||(!g.P&&gB);q=g.P||(!g.B&&gP)}g.ks.forEach(k=>{if(b){bl[k]=true;nb++}if(q){pu[k]=true;np++}})});const B=nb>0,P=np>0;msg=hits.length?`${nb?'出血 '+nb:''}${nb&&np?'・':''}${np?'排膿 '+np:''}か所 つけました`:(tooth?'場所が聞き取れませんでした':'歯の番号が聞き取れませんでした');
- }else if(/^(次|つぎ)/.test(s.replace(/[\s、。]/g,''))||(/(頬側|舌側|口蓋側)/.test(s)&&(/(行き|いき|行く|いく)/.test(s)||(pause!==null&&/^(頬側|舌側|口蓋側)$/.test(s.replace(/[\s、。]/g,''))))&&!/出血|排膿|はいのう|右上|左上|右下|左下/.test(s))){if(pause!==null){nextSeg();return}msg='いまは検査の途中です'}
- else if(pause!==null&&!/戻る|もどる/.test(s)){msg='出血部位を読み上げてください。終わったら「次」'}
- else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
+   const gB=/出血/.test(s),gP=/排膿|はいのう/.test(s);let nb=0,np=0,nd=0;const rec=[],DEL=/消|けし|けす/.test(s);G.forEach(g=>{let b,q;if(pause!==null){b=g.B||(!g.P&&bmode==='出血')||(g.P&&bmode==='出血'&&!g.only);q=g.P||(!g.B&&bmode==='排膿')}else{b=g.B||(!g.P&&gB);q=g.P||(!g.B&&gP)}g.ks.forEach(k=>{rec.push([k,bl[k],pu[k]]);if(DEL){delete bl[k];delete pu[k];nd++;return}if(b){bl[k]=true;nb++}if(q){pu[k]=true;np++}})});const B=nb>0,P=np>0;if(rec.length)BH.push(rec);msg=hits.length?(nd?`${nd}か所 消しました`:`${nb?'出血 '+nb:''}${nb&&np?'・':''}${np?'排膿 '+np:''}か所 つけました`):(tooth?'場所が聞き取れませんでした':'歯の番号が聞き取れませんでした');
+ }else if(/^(次|つぎ)/.test(s.replace(/[\s、。]/g,''))||(/(頬側|舌側|口蓋側)/.test(s)&&(/(行き|いき|行く|いく)/.test(s)||(pause!==null&&/^(頬側|舌側|口蓋側)$/.test(s.replace(/[\s、。]/g,''))))&&!/出血|排膿|はいのう|右上|左上|右下|左下/.test(s))){if(pause!==null){nextSeg();return}const c=SEQ[cur]?SEQ[cur].si:4;if(c>=4){msg='動揺度の途中です'}else{const sw=(s.match(/頬側|舌側|口蓋側/)||[])[0];const sf=sw==='口蓋側'?'P':sw==='頬側'?'B':sw==='舌側'?'L':null;let t=c+1;if(sf){const f=[0,1,2,3].find(i=>i>c&&SEGS[i].surf===sf);if(f!==undefined)t=f}toFace(t);msg='次の面へ：'+SEGS[t].name}}
+ else if(pause!==null&&!/戻る|もどる/.test(s)){const d=digitsOf(s);if(/消|けし|けす|違う|ちがう/.test(s)){msg=undoBleed()}else if(d&&d.length>=2){nextSeg();d.forEach(c=>put(c));msg=SEGS[SEQ[Math.max(0,last)].si].name+'へ進んで '+d.length+'点 入れました'}else msg='出血部位を読み上げてください。終わったら「次」'}
+ else if(SEQ[cur]&&SEQ[cur].mob&&!/戻る|もどる/.test(s)){const d=norm(s.replace(/(右上|左上|右下|左下)?\s*[1-8１-８一二三四五六七八]\s*番/g,' ').replace(/なし|ない/g,'0')).replace(/[^0-9]/g,'').split('');d.forEach(c=>put(+c));msg=d.length?`動揺度 ${d.length}本 入れました`:'聞き取れませんでした'}
  else if(/なし|欠損|けっそん/.test(s)){missCur();msg='欠損にして次の歯へ'}
+ else if(pause!==null&&/戻る|もどる/.test(s)){msg=undoBleed()}
  else if(/戻る|もどる/.test(s)){const n=(s.match(/戻る|もどる/g)||[]).length;for(let k=0;k<n;k++)back();msg=n>1?n+'つ戻りました':'ひとつ戻りました'}
  else{const d=digitsOf(s)||norm(s).replace(/[^0-9]/g,'').split('').map(Number);d.forEach(c=>put(c));msg=d.length?`${d.length}点 入れました`:'数字が聞き取れませんでした'}
  document.getElementById('heard').innerHTML=`<i>聞き取り</i>「${s0}」 → ${msg}`;if(!QUIET){LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:s0,msg:(s!==s0?'['+s+'] ':'')+msg});drawLog()}draw();
 }
 let rec=null,on=false;let RDONE={},RAPP={},RSNAP={},HOLD=null;
 function flushHold(){if(!HOLD)return;clearTimeout(HOLD.tm);const h=HOLD;HOLD=null;if((RDONE[h.i]||0)===h.at&&pause===null){put(h.v);(RAPP[h.i]=RAPP[h.i]||[]).push(h.v);RDONE[h.i]=h.at+1}} // 最後の数字も少し待って入れる
-function snap(){return JSON.stringify({pd,bl,pu,mob,miss:[...miss],cur,last,pause,lastQ,lastT,bmode,UNDO})}
-function restore(j){const o=JSON.parse(j);[[pd,o.pd],[bl,o.bl],[pu,o.pu],[mob,o.mob]].forEach(([a,b])=>{Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,b)});miss.clear();o.miss.forEach(x=>miss.add(x));cur=o.cur;last=o.last;pause=o.pause;lastQ=o.lastQ;lastT=o.lastT||null;bmode=o.bmode;UNDO=o.UNDO||[]}
+function snap(){return JSON.stringify({pd,bl,pu,mob,miss:[...miss],cur,last,pause,lastQ,lastT,bmode,UNDO,BH})}
+function restore(j){const o=JSON.parse(j);[[pd,o.pd],[bl,o.bl],[pu,o.pu],[mob,o.mob]].forEach(([a,b])=>{Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,b)});miss.clear();o.miss.forEach(x=>miss.add(x));cur=o.cur;last=o.last;pause=o.pause;lastQ=o.lastQ;lastT=o.lastT||null;bmode=o.bmode;UNDO=o.UNDO||[];BH=o.BH||[]}
 function digitsOf(t){const n=norm(t).replace(/[、。,.・]/g,' ').trim();if(!n||!/^[0-9\s]+$/.test(n))return null;const out=[];
  const tk=n.split(/\s+/);tk.forEach((tok,ix)=>{if(!tok)return;if(tok==='10'&&/^[2-5]0$/.test(tk[ix+1]||'')){out.push(10+(+tk[ix+1][0]));tk[ix+1]='';return}if(/^[2-5]0$/.test(tok)){out.push(10+(+tok[0]));return}const nx=tk[ix+1]||'';if((tok==='10'||(tok.length>1&&/0$/.test(tok)&&!/^1[0-5]$/.test(tok)))&&/^[1-5]{2,3}$/.test(nx)){if(tok!=='10')for(let k=0;k<tok.length-1;k++){if(tok[k]!=='0')out.push(+tok[k])}nx.split('').forEach(c=>out.push(10+(+c)));tk[ix+1]='';return}/* 「10 23」→12,13 */if(/^1[0-5]$/.test(tok)){out.push(+tok);return}for(let k=0;k<tok.length;k++){const c=tok[k];if(c==='0')continue;out.push(+c)}});return out} // 10〜15は2けたで1つ
 // キーボードの音声入力：話して少し止まったら、新しく増えた分だけを読む
@@ -460,10 +471,12 @@ drawTools();setLay(1);cur=skip(0);drawRec();drawGL();draw();
 const LOG=[];let sent=0;
 function drawLog(){lgn.textContent='記録 '+LOG.length+'件'+(sent?'（送った '+sent+'件）':'');lgv.innerHTML=LOG.slice().reverse().map(l=>'<div style="border-bottom:1px solid #eee;padding:3px 0"><small style="color:#889">'+l.t+'</small> 「'+l.raw.replace(/</g,'&lt;')+'」<br>→ '+l.msg+'</div>').join('')||'まだありません'}
 function sendLog(){const rows=LOG.slice(sent);if(!rows.length){lgs.textContent='送るものなし';setTimeout(()=>lgs.textContent='記録を送る',1500);return}
- lgs.textContent='送っています…';api('saveVoiceLog',{rows:rows.map(l=>[l.t,l.raw,l.msg])}).then(r=>{sent+=rows.length;lgs.textContent='送りました ✓';drawLog();setTimeout(()=>lgs.textContent='記録を送る',2000)}).catch(e=>{lgs.textContent='送れませんでした（'+e.message+'）'})}
+ lgs.textContent='送っています…';api('saveVoiceLog',{rows:rows.map((l,j)=>[l.t,l.raw,(j?'':'['+document.getElementById('ver').textContent+'] ')+l.msg])}).then(r=>{sent+=rows.length;lgs.textContent='送りました ✓';drawLog();setTimeout(()=>lgs.textContent='記録を送る',2000)}).catch(e=>{lgs.textContent='送れませんでした（'+e.message+'）'})}
+function chkVer(){fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(h=>{const m=h.match(/版 [0-9][0-9\/:\-]+/),v=document.getElementById('ver');if(!m||!v||m[0]===v.textContent)return;if(!Object.keys(pd).length&&!on){location.replace(location.pathname+'?v='+Date.now());return}v.textContent='新しい版があります（タップで更新）';v.style.cssText+=';background:#FDE68A;color:#000;font-size:14px;padding:4px 10px;cursor:pointer';v.onclick=()=>{if(confirm('いま入れた数字は消えます。新しい版にしますか？'))location.replace(location.pathname+'?v='+Date.now())}}).catch(()=>{})} // 古い版のまま使わないように
+setTimeout(chkVer,1500);setInterval(chkVer,180000);
 // 保存先（院長のSheet）とのやりとり。合言葉はこのiPadにだけ覚える
 const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DPh-bFlewkjJ7vsRayDCriD2IKHYfHzLue5ScUwn/exec';
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-10:05</div></body></html>
+</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-11:30</div></body></html>
