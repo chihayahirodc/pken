@@ -165,7 +165,7 @@ body.stack table.ch td{height:22px}body.stack table.ch tr.num td{height:18px;fon
     <table class="ch" id="up"></table>
     <div class="mid"></div>
     <table class="ch" id="lo"></table>
-    <div class="lg"><span><b style="display:inline-block;width:16px;height:16px;border:2px solid var(--red);border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 出血は赤丸・<b style="display:inline-block;width:16px;height:16px;border:2px solid #2563EB;border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 排膿は青丸・両方は二重丸</span><span style="color:var(--red);font-weight:600">4</span><span>=4mm以上は赤字</span><span><u></u>プラーク（4面をタップ）</span><span>動揺度は数字をタップで 0→1→2→3</span><span>歯の番号タップ＝欠損（「欠損を選ぶ」中）</span></div>
+    <div class="lg"><span><b style="display:inline-block;width:16px;height:16px;border:2px solid var(--red);border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 出血は赤丸・<b style="display:inline-block;width:16px;height:16px;border:2px solid #2563EB;border-radius:50%;text-align:center;line-height:13px;font-size:11px">3</b> 排膿は青丸・両方は二重丸</span><span style="color:var(--red);font-weight:600">4</span><span>=4mm以上は赤字</span><span><u></u>プラーク（4面をタップ）</span><span>動揺度は数字をタップで 0→1→2→3</span><span>歯の番号タップ＝欠損（「欠損を選ぶ」中）・欠損の歯の番号をタップで取り消し</span></div>
   </div>
   <div class="row">
     <div class="card pdx">
@@ -222,8 +222,8 @@ const range=(a,b)=>{const r=[];if(a<=b)for(let i=a;i<=b;i++)r.push(i);else for(l
 const SEGS=[
  {name:'上 口蓋側',surf:'P',teeth:[...range(8,1).map(t=>['UL',t,'DCM']),...range(1,8).map(t=>['UR',t,'MCD'])]},
  {name:'上 頬側',surf:'B',teeth:[...range(8,1).map(t=>['UR',t,'DCM']),...range(1,8).map(t=>['UL',t,'MCD'])]},
- {name:'下 頬側',surf:'B',teeth:[...range(8,1).map(t=>['LR',t,'DCM']),...range(1,8).map(t=>['LL',t,'MCD'])]},
- {name:'下 舌側',surf:'L',teeth:[...range(8,1).map(t=>['LL',t,'DCM']),...range(1,8).map(t=>['LR',t,'MCD'])]},
+ {name:'下 頬側',surf:'B',teeth:[...range(8,1).map(t=>['LL',t,'DCM']),...range(1,8).map(t=>['LR',t,'MCD'])]}, // 11/16 院長：下は左下7頬側から→右下、舌側は右下7から戻る
+ {name:'下 舌側',surf:'L',teeth:[...range(8,1).map(t=>['LR',t,'DCM']),...range(1,8).map(t=>['LL',t,'MCD'])]},
 ];
 const SEQ=[];SEGS.forEach((s,si)=>s.teeth.forEach(([q,t,o])=>o.split('').forEach(x=>SEQ.push({si,q,t,surf:s.surf,site:x}))));
 // 動揺度（院長 11/13）：上は左上8→右上8、下は右下8→左下8。1・2・3で記載
@@ -268,12 +268,14 @@ function skip(i,dir=1){while(i>=0&&i<SEQ.length&&miss.has(tid(SEQ[i])))i+=dir;re
 function adv(from,to){const a=SEQ[from];if(a&&!a.mob&&(to>=SEQ.length||SEQ[to].si!==a.si))pause=a.si;cur=to}
 function nextSeg(){const ps=pause;pause=null;bmode='出血';lastQ=null;lastT=null;if(ps!==null&&cur<SEQ.length&&SEQ[cur].si===ps){let i=SEQ.findIndex(q=>q.si>ps);cur=i<0?SEQ.length:skip(i)}draw();heardMsg('次の面の検査を始めます')}
 function heardMsg(m){document.getElementById('heard').innerHTML='<i>'+m+'</i>'}
-function put(v){if(pause!==null){heardMsg('出血部位を読み上げ中です。終わったら「次」（または 次へ▶）');return}if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}last=cur;adv(cur,skip(cur+1));draw()}
+let UNDO=[];
+function put(v){if(pause!==null){heardMsg('出血部位を読み上げ中です。終わったら「次」（または 次へ▶）');return}if(cur>=SEQ.length)return;const sp=SEQ[cur];if(sp.mob){if(v>3)return;if(v)mob[tid(sp)]=v;else delete mob[tid(sp)]}else{if(!v)return;pd[key(sp)]=v}UNDO.push({k:'v',i:cur});last=cur;adv(cur,skip(cur+1));draw()}
 function bleedLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);bl[k]=!bl[k];draw()}
-function back(){pause=null;let i=cur-1;while(i>=0&&miss.has(tid(SEQ[i])))i--;if(i<0)return;cur=i;if(SEQ[i].mob)delete mob[tid(SEQ[i])];else delete pd[key(SEQ[i])];last=i-1;draw()}
-function missCur(){if(pause!==null||cur>=SEQ.length)return;const p=SEQ[cur],c=cur;miss.add(tid(p));last=c;adv(c,skip(cur));draw()}
+function back(){pause=null;const h=UNDO.pop();if(h){cur=h.i;last=h.i-1;if(h.k==='m')miss.delete(h.id);else if(SEQ[h.i].mob)delete mob[tid(SEQ[h.i])];else delete pd[key(SEQ[h.i])];draw();return} // 「なし」も戻るで取り消す
+ let i=cur-1;while(i>=0&&miss.has(tid(SEQ[i])))i--;if(i<0)return;cur=i;if(SEQ[i].mob)delete mob[tid(SEQ[i])];else delete pd[key(SEQ[i])];last=i-1;draw()}
+function missCur(){if(pause!==null||cur>=SEQ.length)return;const p=SEQ[cur],c=cur;miss.add(tid(p));UNDO.push({k:'m',i:c,id:tid(p)});last=c;adv(c,skip(cur));draw()}
 function toggleMiss(){missMode=!missMode;document.getElementById('mm').style.background=missMode?'#E0383E':'';document.getElementById('mm').textContent=missMode?'欠損を選ぶ（中）→ 終わる':'欠損を選ぶ'}
-function tapNum(id){if(!missMode)return;miss.has(id)?miss.delete(id):miss.add(id);cur=skip(cur);draw()}
+function tapNum(id){if(!missMode){if(!miss.has(id))return;if(!confirm('この歯の欠損を取り消しますか？'))return;miss.delete(id);UNDO=UNDO.filter(h=>!(h.k==='m'&&h.id===id));const f=SEQ.findIndex(q=>tid(q)===id&&!q.mob&&q.si===SEQ[Math.min(cur,SEQ.length-1)].si);if(f>=0&&f<cur&&pause===null&&SEQ.slice(f,cur).every(q=>tid(q)===id||miss.has(tid(q))))cur=f;draw();return}if(miss.has(id)){miss.delete(id);UNDO=UNDO.filter(h=>!(h.k==='m'&&h.id===id))}else miss.add(id);cur=skip(cur);draw()}
 function jump(k){const i=SEQ.findIndex(p=>key(p)===k);if(i>=0&&!miss.has(tid(SEQ[i]))){cur=i;draw()}}
 function tapMob(id){const v=mob[id];mob[id]=v===undefined?0:v>=3?undefined:v+1;draw()}
 function tapPq(id,s){plq[id]=plq[id]||{};plq[id][s]=!plq[id][s];draw()}
@@ -363,8 +365,8 @@ function hear1(raw){
 }
 let rec=null,on=false;let RDONE={},RAPP={},RSNAP={},HOLD=null;
 function flushHold(){if(!HOLD)return;clearTimeout(HOLD.tm);const h=HOLD;HOLD=null;if((RDONE[h.i]||0)===h.at&&pause===null){put(h.v);(RAPP[h.i]=RAPP[h.i]||[]).push(h.v);RDONE[h.i]=h.at+1}} // 最後の数字も少し待って入れる
-function snap(){return JSON.stringify({pd,bl,pu,mob,miss:[...miss],cur,last,pause,lastQ,lastT,bmode})}
-function restore(j){const o=JSON.parse(j);[[pd,o.pd],[bl,o.bl],[pu,o.pu],[mob,o.mob]].forEach(([a,b])=>{Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,b)});miss.clear();o.miss.forEach(x=>miss.add(x));cur=o.cur;last=o.last;pause=o.pause;lastQ=o.lastQ;lastT=o.lastT||null;bmode=o.bmode}
+function snap(){return JSON.stringify({pd,bl,pu,mob,miss:[...miss],cur,last,pause,lastQ,lastT,bmode,UNDO})}
+function restore(j){const o=JSON.parse(j);[[pd,o.pd],[bl,o.bl],[pu,o.pu],[mob,o.mob]].forEach(([a,b])=>{Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,b)});miss.clear();o.miss.forEach(x=>miss.add(x));cur=o.cur;last=o.last;pause=o.pause;lastQ=o.lastQ;lastT=o.lastT||null;bmode=o.bmode;UNDO=o.UNDO||[]}
 function digitsOf(t){const n=norm(t).replace(/[、。,.・]/g,' ').trim();if(!n||!/^[0-9\s]+$/.test(n))return null;const out=[];
  const tk=n.split(/\s+/);tk.forEach((tok,ix)=>{if(!tok)return;if(tok==='10'&&/^[2-5]0$/.test(tk[ix+1]||'')){out.push(10+(+tk[ix+1][0]));tk[ix+1]='';return}if(/^[2-5]0$/.test(tok)){out.push(10+(+tok[0]));return}const nx=tk[ix+1]||'';if((tok==='10'||(tok.length>1&&/0$/.test(tok)&&!/^1[0-5]$/.test(tok)))&&/^[1-5]{2,3}$/.test(nx)){if(tok!=='10')for(let k=0;k<tok.length-1;k++){if(tok[k]!=='0')out.push(+tok[k])}nx.split('').forEach(c=>out.push(10+(+c)));tk[ix+1]='';return}/* 「10 23」→12,13 */if(/^1[0-5]$/.test(tok)){out.push(+tok);return}for(let k=0;k<tok.length;k++){const c=tok[k];if(c==='0')continue;out.push(+c)}});return out} // 10〜15は2けたで1つ
 // キーボードの音声入力：話して少し止まったら、新しく増えた分だけを読む
@@ -464,4 +466,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-09:50</div></body></html>
+</script><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-10:05</div></body></html>
