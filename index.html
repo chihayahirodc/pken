@@ -40,7 +40,7 @@ td.pq polygon{fill:#fff;stroke:#c7cfdb;stroke-width:1}
 td.pq polygon.on{fill:#F2A93B}
 .mid{height:6px}
 /* bottom */
-.row{display:grid;grid-template-columns:330px 1fr 300px;gap:10px;margin-top:10px}
+.row{display:grid;grid-template-columns:330px 1fr;gap:10px;margin-top:10px}.row>.card:nth-child(3){grid-column:1/-1;column-count:3;column-gap:22px}.row>.card:nth-child(3)>*{break-inside:avoid}
 .now{font-size:13px;color:#667}
 .now b{display:block;font-size:20px;color:var(--g);margin:2px 0 6px}
 .steps{display:flex;gap:4px;margin-bottom:8px}
@@ -504,4 +504,4 @@ const GAS='https://script.google.com/macros/s/AKfycbz_lob5d8WGqB5WFMrXDcUdgYr6DP
 function pkey(){let k='';try{k=localStorage.getItem('pkenKey')||''}catch(x){}if(!k){k=prompt('合言葉を入れてください（このiPadで1回だけ）')||'';try{localStorage.setItem('pkenKey',k)}catch(x){}}return k}
 function api(action,data){return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,key:pkey(),data})}).then(r=>r.json()).then(j=>{if(!j.ok){if(j.error==='合言葉がちがいます'){try{localStorage.removeItem('pkenKey')}catch(x){}}throw new Error(j.error)}return j.result})}
 drawLog();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-15:05</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/16-15:15</div></body></html>
