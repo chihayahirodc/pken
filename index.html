@@ -602,29 +602,44 @@ addEventListener('scroll',tpos);addEventListener('resize',tpos);
 setUI(UI);
 
 /* お口の健康管理（日歯 文書様式3：歯科衛生実地指導1・口腔機能実地指導）— どの入力のしかたでも下に出す */
-const DOC={st:['問題なし','磨き残しあり（///部）','歯石が付いています','歯ぐきに発赤・出血・腫れあり'],ot:['舌苔（舌の汚れ）','義歯下粘膜の汚れ','その他'],
+const DOC={st:['よく磨けています','磨き残しがあります（///部）','歯石がついています','歯ぐきに発赤・出血・腫れがあります'],ot:['舌苔（舌の汚れ）','義歯下粘膜の汚れ','その他'],
  fn:['問題なし ','お口の中が乾きやすい','かむ力（しっかりかめているか）','舌やくちびるの動き','舌の力','食べ物をかむ力（うまくすりつぶせるか）','飲みこむ力（むせずに飲みこめるか）'],
  ch:['食べ物をかむのが苦手','うまく飲みこめない','食べ方のくせ（丸のみ・好き嫌いなど）','発音（ことばのはっきりさ）','栄養のかたより','舌の力が弱い','くちびるをしっかり閉じる力が弱い','その他 '],
- gd:['ブラッシングおよびプラークの除去','唾液腺マッサージ','口唇閉鎖力の訓練','舌圧改善の訓練','咀嚼機能の訓練'],
+ gd:['ブラッシングおよびプラーク除去','唾液腺マッサージ','口唇閉鎖力の訓練','舌圧改善の訓練','咀嚼機能訓練'],
  ex:['歯ブラシは握らずペングリップで','歯みがきの時、舌の表面もきれいにしましょう','強い横みがきは、くさび状欠損の原因となることがあります','歯と歯ぐきの境目に毛先をあてて小さく動かしましょう','歯間ブラシ（フロス）を毎日使いましょう','力を入れすぎず、やさしくみがきましょう']};
 const DTX={'その他':'','その他 ':'','口唇閉鎖力の訓練':'','舌圧改善の訓練':''}; // （　）内に書く所
-const DSEL=new Set(['ブラッシングおよびプラークの除去','歯科衛生実地指導']),DTOUCH=new Set();
-(function(){const c=document.createElement('div');c.className='card';c.id='docc';c.style.marginTop='10px';document.querySelector('.wrap').appendChild(c);drawDoc()})();
+const DSEL=new Set(['ブラッシングおよびプラーク除去']),DTOUCH=new Set();
+setTimeout(function(){const c=document.createElement('div');c.className='card';c.id='docc';c.style.marginTop='10px';document.querySelector('.wrap').appendChild(c);drawDoc()},0);
 function dStats(){const pr=+(document.getElementById('pcr').textContent.replace(/[^0-9]/g,'')||0),bp=+(document.getElementById('bop').textContent.replace(/[^0-9]/g,'')||0),p4=+(document.getElementById('p4').textContent.replace(/[^0-9]/g,'')||0);let n=0;['U','L'].forEach(a=>teethRow(a).forEach(([q,t])=>{if(!miss.has(q+t))n++}));return {pr,bp,p4,n,hasP:Object.keys(plq).some(k=>Object.values(plq[k]||{}).some(Boolean)),hasD:Object.keys(pd).length>0}}
-function dAuto(){const d=dStats();const a={'問題なし':(d.hasP||d.hasD)&&d.pr<20&&(!d.hasD||d.bp<10),'磨き残しあり（///部）':d.hasP&&d.pr>=20,'歯ぐきに発赤・出血・腫れあり':d.hasD&&d.bp>=10};Object.keys(a).forEach(k=>{if(DTOUCH.has(k))return;if(a[k])DSEL.add(k);else DSEL.delete(k)})}
-function dTog(el){const k=el.dataset.k;DTOUCH.add(k);if(DSEL.has(k))DSEL.delete(k);else DSEL.add(k);drawDoc()}
-function dTx(k,v){DTX[k]=v;if(v&&!DSEL.has(k)){DSEL.add(k);DTOUCH.add(k);const e=document.querySelector('#docc span[data-k="'+k+'"]');if(e)e.classList.add('on')}}
-function drawDoc(){const c=document.getElementById('docc');if(!c)return;dAuto();const d=dStats();const esc=x=>String(x).replace(/</g,'&lt;').replace(/"/g,'&quot;');
- const tx=k=>k in DTX?'<input value="'+esc(DTX[k])+'" placeholder="'+(k.trim()==='その他'?'その他の内容':'内容')+'" oninput="dTx(\''+k+'\',this.value)" style="width:220px;font-size:15px;padding:6px 8px">':'';
- const ch=(l,ex)=>'<div class="dch'+(ex?' ex':'')+'">'+l.map(k=>'<span data-k="'+esc(k)+'" class="'+(DSEL.has(k)?'on':'')+'" onclick="dTog(this)">'+esc(k.trim())+'</span>'+tx(k)).join('')+'</div>';
- const dr=lsg('pkenDr')||'',dh=lsg('pkenTanto')||'（上の欄で担当を選ぶ）',fr=(document.getElementById('dfree')||{}).value||'';
- c.innerHTML='<h2>📄 お口の健康管理（日歯 文書様式3 R8）</h2><div class="dau"><div>日付<b>'+esc(document.getElementById('dt').textContent||'')+'</b></div><div>指導時間<b>'+t1.value+'〜'+t2.value+'</b></div><div>歯科衛生士（担当）<b>'+esc(dh)+'</b></div><div>PCR<b>'+d.pr+'%</b></div><div>BoP<b>'+(d.hasD?d.bp+'%':'－')+'</b></div><div>現在の歯<b>'+d.n+'本</b></div></div>'
- +'<div class="dg"><small>担当歯科医師（このiPadで覚えます）</small><input id="ddr" value="'+esc(dr)+'" placeholder="例：内田" oninput="lss(\'pkenDr\',this.value)" style="width:240px"></div>'
- +'<div class="dg"><small>● 歯と歯肉の状態（検査の結果から自動で✓、タップで直せます）</small>'+ch(DOC.st)+'</div><div class="dg"><small>● その他</small>'+ch(DOC.ot)+'</div>'
- +'<div class="dg"><small>● お口の機能のチェック</small>'+ch(DOC.fn)+'</div><div class="dg"><small>● お子さんのお口の機能の問題、お口の機能のチェック</small>'+ch(DOC.ch)+'</div>'
- +'<div class="dg"><small>● 指導内容等</small>'+ch(DOC.gd)+'</div><div class="dg"><small>指導の種類（時間は上の欄の時間）</small>'+ch(['歯科衛生実地指導','訪問歯科衛生指導'])+'</div>'
- +'<div class="dg"><small>ひとこと（例文をタップ・指導内容等の空いた所に入ります）</small>'+ch(DOC.ex,1)+'</div>'
- +'<div class="dg"><small>自由に書く</small><textarea id="dfree">'+esc(fr)+'</textarea></div><button class="dpr" onclick="printDoc()">文書を開く（印刷・PDF）</button>'}
+function dAuto(){const d=dStats();const a={'よく磨けています':d.hasP&&d.pr<20,'磨き残しがあります（///部）':d.hasP&&d.pr>=20,'歯ぐきに発赤・出血・腫れがあります':d.hasD&&d.bp>=10};Object.keys(a).forEach(k=>{if(DTOUCH.has(k))return;if(a[k])DSEL.add(k);else DSEL.delete(k)})}
+function dTog(el){dTogK(el.dataset.k)}
+function dTogK(k){DTOUCH.add(k);if(DSEL.has(k))DSEL.delete(k);else DSEL.add(k);drawDoc()}
+function dTx(k,v){DTX[k]=v;if(v&&!DSEL.has(k)){DSEL.add(k);DTOUCH.add(k);const e=document.querySelector('#docc [data-ck="'+k+'"]');if(e)e.textContent='☑'}}
+let DFREE='';function dEx(t){const a=document.getElementById('dfree');DFREE=(a?a.value:DFREE);DFREE=(DFREE?DFREE.replace(/\n*$/,'\n'):'')+'・'+t;if(a)a.value=DFREE}
+const DCSS='.pg{position:relative;width:840px;height:1191px;background:#fff url(\''+new URL('img/yoshiki3_r6.png',location.href).href+'\') 0 0/840px 1191px no-repeat;color:#111;font-family:"Hiragino Sans","Noto Sans JP",sans-serif}.pg .o{position:absolute;white-space:nowrap}.pg .ck{position:absolute;font-size:26px;font-weight:700;color:#C00;line-height:1;transform:translate(-50%,-58%)}.pg svg{position:absolute;left:0;top:0;width:840px;height:1191px;pointer-events:none}';
+const DROW={'よく磨けています':[83,244],'磨き残しがあります（///部）':[83,272],'歯石がついています':[83,300],'歯ぐきに発赤・出血・腫れがあります':[83,328],'舌苔（舌の汚れ）':[83,411],'義歯下粘膜の汚れ':[83,439],'その他':[83,467],'ブラッシングおよびプラーク除去':[459,579],'唾液腺マッサージ':[459,607],'口唇閉鎖力の訓練':[459,635],'舌圧改善の訓練':[459,691],'咀嚼機能訓練':[459,747]};
+const DTC=[[221,549,10],[202,553,10],[186,563,10],[171,580,11],[157,598,11],[143,619,16],[129,652,16],[120,683,16]]; // 右上1〜8の中心と半径（用紙の絵の上）、左は x→462-x、下は y→1409-y
+function docTeeth(){let g='';['U','L'].forEach(a=>teethRow(a).forEach(([q,t])=>{const id=q+t,p=plq[id]||{},[bx,by,r]=DTC[t-1],x=q[1]==='R'?bx:462-bx,y=a==='U'?by:1409-by;
+ if(miss.has(id)){g+='<path d="M'+(x-r)+' '+(y-r)+'L'+(x+r)+' '+(y+r)+'M'+(x+r)+' '+(y-r)+'L'+(x-r)+' '+(y+r)+'" stroke="#C00" stroke-width="2.2"/>';return}
+ [['a',-135,-45],['b',-45,45],['c',45,135],['d',135,225]].forEach(([f,a0,a1])=>{if(!p[f])return;const A=v=>(x+Math.cos(v*Math.PI/180)*r).toFixed(1)+' '+(y+Math.sin(v*Math.PI/180)*r).toFixed(1);g+='<path d="M'+x+' '+y+'L'+A(a0)+'A'+r+' '+r+' 0 0 1 '+A(a1)+'Z" fill="rgba(224,49,49,.75)"/>'})}));return '<svg viewBox="0 0 840 1191">'+g+'</svg>'}
+function docBody(live){const d=dStats(),esc=x=>String(x).replace(/</g,'&lt;').replace(/"/g,'&quot;');const dt=(document.getElementById('dt').textContent||'').match(/(\d+)\/(\d+)\/(\d+)/)||['','','',''];
+ const o=(x,y,html,st)=>'<div class="o" style="left:'+x+'px;top:'+y+'px;'+(st||'')+'">'+html+'</div>';
+ let h='';Object.keys(DROW).forEach(k=>{const [x,y]=DROW[k];if(DSEL.has(k))h+='<div class="ck" style="left:'+(x+1)+'px;top:'+y+'px">✓</div>';if(live)h+='<div class="o" onclick="dTogK(\''+k+'\')" style="left:'+(x-12)+'px;top:'+(y-13)+'px;width:'+(k==='その他'?90:x<400?350:320)+'px;height:26px;cursor:pointer"></div>'});
+ const inp=(k,x,y,w)=>live?o(x,y-13,'<input class="di" value="'+esc(DTX[k]||'')+'" oninput="dTx(\''+k+'\',this.value)" onchange="drawDoc()" style="width:'+w+'px">'):o(x,y-11,esc(DTX[k]||''),'font-size:16px');
+ h+=inp('その他',185,467,235)+inp('口唇閉鎖力の訓練',548,663,185)+inp('舌圧改善の訓練',548,719,185);
+ h+=live?o(452,760,'<textarea id="dfree" class="dfr" placeholder="ここに書く（下の例文をタップでも入ります）" oninput="DFREE=this.value">'+esc(DFREE)+'</textarea>'):o(456,764,esc(DFREE).replace(/\n/g,'<br>'),'font-size:14px;line-height:1.5;white-space:normal;width:318px');
+ const T1=t1.value.split(':'),T2=t2.value.split(':'),num=(x,y,v,f)=>o(x-30,y-12,v,'width:60px;text-align:center;font-size:'+(f||18)+'px');
+ h+=num(533,885,+T1[0])+num(600,885,T1[1])+num(658,885,+T2[0])+num(718,885,T2[1]);
+ h+=num(570,122,dt[1],17)+num(655,122,+dt[2],17)+num(735,122,+dt[3],17)+num(240,905,d.n,18);
+ h+=o(300,955,'千早並木通りひろ歯科クリニック','font-size:18px')+o(300,1011,'〒813-0044 福岡市東区千早4-11-14　TEL 092-681-6650','font-size:14px');
+ h+=live?o(298,1031,'<input class="di" value="'+esc(lsg('pkenDr')||'内田 雄啓')+'" oninput="lss(\'pkenDr\',this.value)" style="width:150px;font-size:14px;padding:1px 3px">'):o(300,1033,esc(lsg('pkenDr')||'内田 雄啓'),'font-size:15px');
+ h+=o(392,1056,esc(lsg('pkenTanto')||(live?'（担当を選ぶ）':'')),'font-size:16px;background:#fff;padding:0 4px');
+ h+=o(110,912,'PCR '+d.pr+'%'+(d.hasD?'・BoP '+d.bp+'%':''),'font-size:11px;color:#555;display:none');
+ return '<div class="pg">'+docTeeth()+h+'</div>'}
+function drawDoc(){const c=document.getElementById('docc');if(!c)return;dAuto();const a=document.getElementById('dfree');if(a)DFREE=a.value;
+ c.innerHTML='<style>'+DCSS+'#docc .dl{padding:3px 0}#docc .dl span{cursor:pointer}#docc .dbx{display:inline-block;font-size:24px;line-height:1;width:30px;vertical-align:-3px;color:#1E2A44}#docc .pg{margin:0 auto;box-shadow:0 0 0 1px #ccd}#docc .di{font-size:16px;border:0;border-bottom:1.5px solid #3B82F6;background:rgba(238,244,255,.85);padding:3px 4px;border-radius:0}#docc .dfr{width:320px;height:100px;box-sizing:border-box;font-size:14px;border:1.5px dashed #3B82F6;background:rgba(247,250,255,.85);border-radius:6px;padding:6px}</style>'
+ +'<h2>📄 口腔衛生管理（日歯 文書様式3 R6）<small style="font-weight:400;font-size:13px;color:#667">　□の行をタップで✓、青い所に書けます</small></h2>'+docBody(true)
+ +'<div class="dg" style="max-width:840px;margin:10px auto 0"><small>例文（タップで指導内容の空欄に入ります）</small><div class="dch ex">'+DOC.ex.map(t=>'<span onclick="dEx(\''+t+'\')">'+t+'</span>').join('')+'</div></div><button class="dpr" style="max-width:840px;margin:12px auto 0" onclick="printDoc()">印刷・PDF（この用紙のまま）</button>'}
 {const _d=draw;draw=function(){_d();if(document.getElementById('docc')&&!document.activeElement?.closest?.('#docc'))drawDoc()}}
 function docArch(){ // 様式3の歯列図：口の中の絵＋丸い歯（永久歯1〜8）、内側に乳歯A〜E。プラークの面を赤
  const W=300,H=360,cx=150,cy=180;let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" font-family="sans-serif">';
@@ -642,17 +657,6 @@ function docArch(){ // 様式3の歯列図：口の中の絵＋丸い歯（永�
  arch('U',1);arch('L',-1);
  const tag=(x,y,t)=>'<g transform="translate('+x+','+y+')"><rect x="-12" y="-16" width="24" height="32" rx="12" fill="#fff" stroke="#555"/><text y="-2" font-size="9" text-anchor="middle">'+t[0]+'</text><text y="10" font-size="9" text-anchor="middle">'+t[1]+'</text></g>';
  s+=tag(16,24,'右上')+tag(W-16,24,'左上')+tag(16,H-24,'右下')+tag(W-16,H-24,'左下')+'</svg>';return s}
-function docHTML(){const d=dStats(),esc=x=>String(x).replace(/</g,'&lt;'),fr=(document.getElementById('dfree')||{}).value||'';
- const ck=k=>'<span class="ck">'+(DSEL.has(k)?'☑':'□')+esc(k.trim())+(k in DTX?'（'+(esc(DTX[k])||'　　　　')+'）':'')+'</span>';
- const ln=(k,lab)=>'<div>'+(DSEL.has(k)?'☑':'□')+lab+(k in DTX?'（内容：'+esc(DTX[k])+'　）':'')+'</div>';
- const ex=DOC.ex.filter(k=>DSEL.has(k));const T=(k)=>DSEL.has(k)?t1.value.replace(':','：')+' ～ '+t2.value.replace(':','：'):'：　～　：';
- return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>お口の健康管理</title><style>@page{size:A4 portrait;margin:10mm}body{font-family:"Hiragino Sans","Noto Sans JP",sans-serif;color:#222;margin:0;padding:12px;font-size:13px}.bar{position:sticky;top:0;background:#1E2A44;padding:10px;display:flex;gap:10px;margin:-12px -12px 12px}.bar button{font-size:18px;padding:10px 20px;border:0;border-radius:8px}.bar .p{background:#3B82F6;color:#fff}@media print{.bar{display:none}}'
- +'.pg{max-width:760px;margin:0 auto}.hd{display:flex;justify-content:space-between;font-size:11px}.t{text-align:center;font-size:24px;font-weight:700;letter-spacing:6px;margin:6px 0}.r{display:flex;justify-content:space-between;align-items:flex-end;margin:4px 0 10px}.nm{min-width:300px;border-bottom:1px solid #333;text-align:right;padding-right:4px;font-size:15px}.box{border:1px solid #999;border-radius:6px;padding:6px 10px;margin-top:8px}.box b{display:block;margin:2px 0}.ck{display:inline-block;margin:1px 14px 1px 8px}.two{display:grid;grid-template-columns:42% 1fr;gap:10px;margin-top:8px}.gd div{margin:3px 0 3px 8px}.ft{border:1px solid #999;margin-top:8px;padding:6px 10px;line-height:2}.sp{display:flex}.sp span{flex:1}.sm{text-align:right;font-size:10px;margin-top:4px}</style></head><body><div class="bar"><button class="p" onclick="print()">印刷・PDFにする</button><button onclick="close()">閉じる</button><span style="color:#fff;font-size:13px;align-self:center">iPadで反応しないときは 共有 → プリント</span></div><div class="pg">'
- +'<div class="hd"><span>歯科衛生実地指導１・口腔機能実地指導・訪問歯科衛生指導</span><span>（文書様式３）R８</span></div><div class="t">お口の健康管理</div><div class="r"><span class="nm">様</span><span>'+esc(document.getElementById('dt').textContent||'')+'</span></div>'
- +'<div class="box"><b>●歯と歯肉の状態</b>'+DOC.st.map(ck).join('')+'<b>●その他</b>'+DOC.ot.map(ck).join('')+'</div>'
- +'<div class="box"><b>●お口の機能のチェック</b>'+DOC.fn.map(ck).join('')+'<b>●お子さんのお口の機能の問題、お口の機能のチェック</b>'+DOC.ch.map(ck).join('')+'</div>'
- +'<div class="two"><div>'+docArch()+'<div style="text-align:center">現在（ '+d.n+' ）本　<small>PCR '+d.pr+'%'+(d.hasD?'・BoP '+d.bp+'%':'')+'</small></div></div><div class="box gd" style="margin-top:0"><b>●指導内容等</b>'+ln('ブラッシングおよびプラークの除去','ブラッシングおよびプラークの除去')+ln('唾液腺マッサージ','唾液腺マッサージ')+ln('口唇閉鎖力の訓練','口唇閉鎖力の訓練')+ln('舌圧改善の訓練','舌圧改善の訓練')+ln('咀嚼機能の訓練','咀嚼機能の訓練')
- +'<div style="min-height:70px;margin:8px 8px">'+ex.map(x=>'・'+esc(x)).join('<br>')+(fr?(ex.length?'<br>':'')+esc(fr).replace(/\n/g,'<br>'):'')+'</div><div>'+(DSEL.has('歯科衛生実地指導')?'☑':'□')+'歯科衛生実地指導　'+T('歯科衛生実地指導')+'</div><div>'+(DSEL.has('訪問歯科衛生指導')?'☑':'□')+'訪問歯科衛生指導　'+T('訪問歯科衛生指導')+'</div></div></div>'
- +'<div class="ft">保険医療機関名：千早並木通りひろ歯科クリニック<br>所在地・電話番号：<br><div class="sp"><span>担当歯科医師：'+esc(lsg('pkenDr')||'')+'</span><span>歯科衛生士：'+esc(lsg('pkenTanto')||'')+'</span></div></div><div class="sm">公益社団法人 日本歯科医師会・日本歯科医学会 監修</div></div></body></html>'}
+function docHTML(){const a=document.getElementById('dfree');if(a)DFREE=a.value;return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>口腔衛生管理</title><style>@page{size:A4 portrait;margin:8mm}@media print{.pg{zoom:.86}}body{font-family:"Hiragino Sans","Noto Sans JP",sans-serif;margin:0;padding:12px}.bar{position:sticky;top:0;background:#1E2A44;padding:10px;display:flex;gap:10px;margin:-12px -12px 12px}.bar button{font-size:18px;padding:10px 20px;border:0;border-radius:8px}.bar .p{background:#3B82F6;color:#fff}@media print{.bar{display:none}}'+DCSS+'</style></head><body><div class="bar"><button class="p" onclick="print()">印刷・PDFにする</button><button onclick="close()">閉じる</button><span style="color:#fff;font-size:13px;align-self:center">iPadで反応しないときは 共有 → プリント</span></div>'+docBody(false)+'</body></html>'}
 function printDoc(){const w=window.open('','_blank');if(!w){alert('ポップアップを許可してください');return}w.document.open();w.document.write(docHTML());w.document.close()}
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-21:20</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-21:40</div></body></html>
