@@ -150,6 +150,23 @@ body.stack table.ch td{height:22px}body.stack table.ch tr.num td{height:18px;fon
 td.pend{background:#FEF08A!important;box-shadow:inset 0 0 0 2px #EAB308}
 #rot{display:none}@media (orientation:portrait) and (max-width:1100px){#rot{display:flex;position:fixed;inset:0;z-index:200;background:#1E2A44;color:#fff;flex-direction:column;align-items:center;justify-content:center;font-size:26px;font-weight:bold;text-align:center;gap:18px}}
 header{flex-wrap:wrap!important;row-gap:8px!important}header .f{font-size:15px!important;padding:8px 12px!important}header .f b{font-size:16px!important}header input[type=time]{width:110px!important;font-size:15px!important}header .sp{flex-basis:100%;height:0}header .mode span,header .lay span{padding:12px 26px!important;font-size:17px!important}header #mm{padding:12px 30px!important;font-size:17px!important;margin-left:auto;background:#F59F00;color:#fff;font-weight:700;border-radius:10px}#ver{top:auto!important;bottom:70px}
+
+/* 入力のしかた：声だけ／タッチだけ／いまの画面 */
+body.ui-voice #ppad,body.ui-voice #mpad{display:none!important}
+body.ui-voice .mic{height:96px;font-size:26px}
+body.ui-voice .heard{font-size:18px;min-height:70px}
+body.ui-touch .voice{display:none}
+body.ui-touch #tzone{display:block}
+#tzone{display:none}
+body.ui-touch #ppad{grid-template-columns:repeat(6,1fr);gap:8px}
+body.ui-touch #ppad button{height:84px;font-size:40px;border-width:2px}
+body.ui-touch #ppad button.w{font-size:20px;font-weight:700}
+body.ui-touch #ppad button:nth-child(n+12){height:60px}
+body.ui-touch #mpad{gap:8px}
+body.ui-touch #mpad button{height:96px!important;font-size:40px!important}
+body.ui-touch #mpad button.w{height:64px!important;font-size:20px!important}
+body.ui-touch #mpad div{font-size:16px!important}
+.tzh{font-size:14px;color:#667;margin-bottom:6px}
 </style></head><body>
 <header>
   <h1>歯周検査</h1>
@@ -157,6 +174,7 @@ header{flex-wrap:wrap!important;row-gap:8px!important}header .f{font-size:15px!i
   <div class="f" id="dt"></div>
   <div class="f">時間 <input type="time" id="t1" value="18:10" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px">〜<input type="time" id="t2" value="18:40" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px"></div>
   <div class="f" id="tanto" onclick="openStaff()" style="cursor:pointer">担当 <b id="tnm">（タップで選ぶ）</b> ▾</div>
+  <div class="f" id="uim" onclick="openUI()" style="cursor:pointer">入力 <b id="uinm">いまの画面</b> ▾</div>
   <div class="sp"></div>
   <div class="mode" id="mode"><span class="on" onclick="setMode(0)">検査あり</span><span onclick="setMode(1)">プラークだけ</span></div>
   <div class="lay" id="lay"><span style="opacity:.8;cursor:default">前回</span><span onclick="setLay(0)">表示しない</span><span onclick="setLay(1)">行で</span><span onclick="setLay(2)">上下</span></div>
@@ -546,4 +564,20 @@ function openStaff(){let o=document.getElementById('stz');if(!o){o=document.crea
  o.innerHTML=box('<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'+STAFF.map(n=>'<button onclick="pickStaff(this.textContent)" style="font-size:22px;font-weight:700;padding:20px 10px;border-radius:12px;border:2px solid '+(n===cur?'#2563EB;background:#2563EB;color:#fff':'#ccd;background:#f8f9fc;color:#1E2A44')+'">'+n.replace(/</g,'&lt;')+'</button>').join('')+'</div>')}
 function pickStaff(n){lss('pkenTanto',n);showTanto();const o=document.getElementById('stz');if(o)o.remove()}
 showTanto();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/17-13:55</div></body></html>
+
+/* 入力のしかた：声だけ／タッチだけ／いまの画面（iPadごとに覚える） */
+const UIN={both:'いまの画面',voice:'声だけ',touch:'タッチだけ'};let UI=lsg('pkenUI');if(!UIN[UI])UI='both';let TAUTO=false;
+(function(){const v=document.querySelector('.voice');const tz=document.createElement('div');tz.id='tzone';tz.className='pdx';tz.innerHTML='<div class="tzh">数字をタップ（測ると自動で次へ）</div>';v.parentElement.insertBefore(tz,v);const h=document.createElement('div');h.id='lhome';const pp=document.getElementById('ppad');pp.parentElement.insertBefore(h,document.getElementById('mpad'))})();
+function setUI(m){UI=m;lss('pkenUI',m);document.body.classList.remove('ui-both','ui-voice','ui-touch');document.body.classList.add('ui-'+m);document.getElementById('uinm').textContent=UIN[m];
+ const tz=document.getElementById('tzone'),h=document.getElementById('lhome'),a=document.getElementById('mpad'),b=document.getElementById('ppad');
+ if(m==='touch'){tz.appendChild(a);tz.appendChild(b);if(on)try{mic()}catch(e){}}else{h.after(a);a.after(b)}
+ const o=document.getElementById('uiz');if(o)o.remove();draw()}
+function openUI(){let o=document.getElementById('uiz');if(!o){o=document.createElement('div');o.id='uiz';o.style.cssText='position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:90;display:flex;align-items:center;justify-content:center';o.onclick=e=>{if(e.target===o)o.remove()};document.body.appendChild(o)}
+ const c=(m,ic,t,d)=>'<button onclick="setUI(\''+m+'\')" style="text-align:left;padding:18px 20px;border-radius:14px;border:3px solid '+(UI===m?'#2563EB;background:#EEF4FF':'#d5dbe5;background:#fff')+';color:#1E2A44;display:flex;gap:16px;align-items:center"><span style="font-size:40px">'+ic+'</span><span><b style="font-size:24px">'+t+'</b>'+(UI===m?'<span style="font-size:14px;color:#2563EB;margin-left:8px">いま使用中</span>':'')+'<br><span style="font-size:15px;color:#556">'+d+'</span></span></button>';
+ o.innerHTML='<div style="background:#fff;border-radius:16px;padding:22px;width:600px;max-width:92vw"><div style="font-size:22px;font-weight:700;margin-bottom:14px">入力のしかたを選んでください</div><div style="display:grid;gap:12px">'+c('voice','🎤','声だけ','声で入れる。数字ボタンは出さず、マイクを大きく')+c('touch','👆','タッチだけ','大きな数字ボタンで入れる。マイクは使わない。出血はマスをタップ')+c('both','🎤👆','いまの画面','声とタップの両方（今までどおり）')+'</div><div style="font-size:13px;color:#667;margin-top:10px">入れた数字は消えません。このiPadは次も同じ入力のしかたで開きます。</div><div style="text-align:right;margin-top:12px"><button onclick="document.getElementById(\'uiz\').remove()" style="font-size:17px;padding:12px 24px;border-radius:10px;border:1px solid #ccd;background:#f4f6fa">閉じる</button></div></div>'}
+// タッチだけ：面が終わったら出血ボタンを自動で押した状態にし、マスのタップで出血の印。数字を押すとそのまま次の面へ
+{const _p=put;put=function(v){if(UI==='touch'&&pause!==null){nextSeg()}return _p(v)}}
+{const _n=nextSeg;nextSeg=function(){if(TAUTO){TAPM=null;TAUTO=false}return _n()}}
+{const _d=draw;draw=function(){if(UI==='touch'&&pause!==null&&!TAPM){TAPM='b';TAUTO=true}_d();const g=document.getElementById('bguide');if(UI==='touch'&&pause!==null&&g){const t=g.firstElementChild.children;if(t[1])t[1].textContent='🩸 出血の所のマスをタップ';if(t[2])t[2].textContent='排膿は「排膿」ボタンを押してからタップ。終わったら 次へ ▶（数字を押しても次の面へ）'}}}
+setUI(UI);
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-20:50</div></body></html>
