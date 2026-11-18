@@ -156,12 +156,21 @@ body.ui-voice #ppad,body.ui-voice #mpad{display:none!important}
 body.ui-voice .mic{height:96px;font-size:26px}
 body.ui-voice .heard{font-size:18px;min-height:70px}
 body.ui-touch .voice{display:none}
-body.ui-touch #tzone{display:block}
 #tzone{display:none}
-body.ui-touch #ppad{grid-template-columns:repeat(6,1fr);gap:8px}
-body.ui-touch #ppad button{height:84px;font-size:40px;border-width:2px}
-body.ui-touch #ppad button.w{font-size:20px;font-weight:700}
-body.ui-touch #ppad button:nth-child(n+12){height:60px}
+body.ui-touch .row{grid-template-columns:1fr}
+body.ui-touch .lg{display:none}
+body.ui-touch .row>.card:first-child{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-items:center}
+body.ui-touch .row>.card:first-child .steps{grid-column:1;margin:0}
+body.ui-touch .row>.card:first-child .now{grid-column:2;grid-row:1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+body.ui-touch .steps span{font-size:13px;padding:6px 0}
+body.ui-touch .now b{font-size:24px;margin:0}
+body.ui-touch #ppad,body.ui-touch #mpad,body.ui-touch #lhome{grid-column:1/-1}
+body.ui-touch #ppad{grid-template-columns:repeat(10,1fr);gap:10px;margin-top:10px}
+body.ui-touch #ppad button{height:110px;font-size:58px;border-width:2px}
+body.ui-touch #ppad button.w{font-size:24px;font-weight:700}
+body.ui-touch #ppad button:nth-child(n+11){height:66px}
+body.ui-touch #ppad button:nth-child(16){grid-column:span 4!important}
+body.ui-touch #mpad{margin-top:10px}
 body.ui-touch #mpad{gap:8px}
 body.ui-touch #mpad button{height:96px!important;font-size:40px!important}
 body.ui-touch #mpad button.w{height:64px!important;font-size:20px!important}
@@ -570,7 +579,7 @@ const UIN={both:'いまの画面',voice:'声だけ',touch:'タッチだけ'};let
 (function(){const v=document.querySelector('.voice');const tz=document.createElement('div');tz.id='tzone';tz.className='pdx';tz.innerHTML='<div class="tzh">数字をタップ（測ると自動で次へ）</div>';v.parentElement.insertBefore(tz,v);const h=document.createElement('div');h.id='lhome';const pp=document.getElementById('ppad');pp.parentElement.insertBefore(h,document.getElementById('mpad'))})();
 function setUI(m){UI=m;lss('pkenUI',m);document.body.classList.remove('ui-both','ui-voice','ui-touch');document.body.classList.add('ui-'+m);document.getElementById('uinm').textContent=UIN[m];
  const tz=document.getElementById('tzone'),h=document.getElementById('lhome'),a=document.getElementById('mpad'),b=document.getElementById('ppad');
- if(m==='touch'){tz.appendChild(a);tz.appendChild(b);if(on)try{mic()}catch(e){}}else{h.after(a);a.after(b)}
+ h.after(a);a.after(b);if(m==='touch'&&on)try{mic()}catch(e){}
  const o=document.getElementById('uiz');if(o)o.remove();draw()}
 function openUI(){let o=document.getElementById('uiz');if(!o){o=document.createElement('div');o.id='uiz';o.style.cssText='position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:90;display:flex;align-items:center;justify-content:center';o.onclick=e=>{if(e.target===o)o.remove()};document.body.appendChild(o)}
  const c=(m,ic,t,d)=>'<button onclick="setUI(\''+m+'\')" style="text-align:left;padding:18px 20px;border-radius:14px;border:3px solid '+(UI===m?'#2563EB;background:#EEF4FF':'#d5dbe5;background:#fff')+';color:#1E2A44;display:flex;gap:16px;align-items:center"><span style="font-size:40px">'+ic+'</span><span><b style="font-size:24px">'+t+'</b>'+(UI===m?'<span style="font-size:14px;color:#2563EB;margin-left:8px">いま使用中</span>':'')+'<br><span style="font-size:15px;color:#556">'+d+'</span></span></button>';
@@ -580,4 +589,4 @@ function openUI(){let o=document.getElementById('uiz');if(!o){o=document.createE
 {const _n=nextSeg;nextSeg=function(){if(TAUTO){TAPM=null;TAUTO=false}return _n()}}
 {const _d=draw;draw=function(){if(UI==='touch'&&pause!==null&&!TAPM){TAPM='b';TAUTO=true}_d();const g=document.getElementById('bguide');if(UI==='touch'&&pause!==null&&g){const t=g.firstElementChild.children;if(t[1])t[1].textContent='🩸 出血の所のマスをタップ';if(t[2])t[2].textContent='排膿は「排膿」ボタンを押してからタップ。終わったら 次へ ▶（数字を押しても次の面へ）'}}}
 setUI(UI);
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-20:50</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-20:36</div></body></html>
