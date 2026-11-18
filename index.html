@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>P検アプリ 声の試し版</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>P検アプリ</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <style>
 :root{--g:#1E2A44;--g2:#3B82F6;--gl:#EEF2F8;--t:#333;--line:#cfd6e2;--red:#E0383E;--bg:#f4f6f9}
 *{box-sizing:border-box}
@@ -190,7 +190,7 @@ body.ui-touch #mpad div{font-size:16px!important}
   <h1>歯周検査</h1>
   <div class="f">カルテ番号 <b id="kno">1234</b></div>
   <div class="f" id="dt"></div>
-  <div class="f">時間 <input type="time" id="t1" value="18:10" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px">〜<input type="time" id="t2" value="18:40" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px"></div>
+  <div class="f">時間 <input type="time" id="t1" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px">〜<input type="time" id="t2" style="font-size:15px;border:none;border-radius:6px;padding:2px 4px;width:118px"></div>
   <div class="f" id="tanto" onclick="openStaff()" style="cursor:pointer">担当 <b id="tnm">（タップで選ぶ）</b> ▾</div>
   <div class="f" id="uim" onclick="openUI()" style="cursor:pointer">入力 <b id="uinm">いまの画面</b> ▾</div>
   <div class="sp"></div>
@@ -249,7 +249,7 @@ body.ui-touch #mpad div{font-size:16px!important}
     <div class="chips" id="wt" style="margin-bottom:5px"></div><div class="chips" id="wd" style="margin-bottom:6px;max-height:120px;overflow:auto"></div>
     <div class="rec"><div class="rh"><b>おすすめの清掃用具・物販</b><small>検査の結果から候補を出します。DHがタップしたものだけ業務記録と患者さん用の紙に入ります（値段は載せません）</small></div>
       <div id="prevrec" class="prevrec"></div><div id="sug" class="sug"></div></div>
-    <textarea id="memo" style="width:100%;height:64px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;font-family:inherit">指導内容：プラークの付着状況と歯肉の状態を説明し、バス法を指導。歯間ブラシの使い方を説明</textarea>
+    <textarea id="memo" style="width:100%;height:64px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;font-family:inherit"></textarea>
     <button class="save" id="savebtn" onclick="saveRec()" style="height:64px;font-size:20px;margin-top:12px">💾 保存して Note（サブカルテ）へ</button>
     <div class="note" id="savenote">見本です。保存はまだ動きません（押すと下に「検査おわり」が出ます）</div>
     <button id="docgo" onclick="openDoc()" style="display:none;width:100%;margin-top:14px;height:76px;font-size:24px;font-weight:700;border:0;border-radius:12px;background:#E8590C;color:#fff;box-shadow:0 0 0 4px #FFD8A8">✅ 検査おわり → 📄 文書（口腔衛生管理）を書く</button>
@@ -556,7 +556,7 @@ const _draw=draw;draw=function(){_draw();{const b=document.getElementById('tbB')
 drawTools();Object.keys(PPD).forEach(k=>delete PPD[k]);Object.keys(PBL).forEach(k=>delete PBL[k]); // 試し版：見本の前回データは消す
 setLay(0);cur=skip(0);drawRec();drawGL();draw();
 </script><div id="tbar" style="position:fixed;left:0;right:0;bottom:0;z-index:50;background:#FFF8E1;border-top:2px solid #F0B429;padding:6px 12px;font-size:13px;display:flex;gap:10px;align-items:center">
-<b style="color:#8A5A00">声の試し版</b><span>保存はされません。聞き取った言葉の記録だけ「送る」で院長のSheetに残せます（数字と部位だけ・名前なし）。</span>
+<b style="color:#8A5A00">声の記録</b><span>声がうまく入らなかったときは「記録を送る」で院長のSheetに送れます（数字と部位だけ・名前なし）。</span>
 <span id="lgn" style="margin-left:auto">記録 0件</span><button onclick="lgv.style.display=lgv.style.display=='block'?'none':'block'" style="padding:6px 10px">記録を見る</button><button id="lgs" onclick="sendLog()" style="padding:6px 12px;background:#1E2A44;color:#fff;border:0;border-radius:6px">記録を送る</button></div>
 <div id="lgv" style="display:none;position:fixed;right:12px;bottom:46px;width:460px;max-height:50vh;overflow:auto;background:#fff;border:1px solid #ccd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:51;padding:8px;font-size:13px"></div>
 <div style="height:48px"></div>
@@ -675,5 +675,61 @@ function docPNG(){return new Promise((res,rej)=>{const S=2,cv=document.createEle
   tx('千早並木通りひろ歯科クリニック',300,967,18);tx('〒813-0044 福岡市東区千早4-11-14　TEL 092-681-6650',300,1021,14);tx(lsg('pkenTanto')||'',396,1067,16);
   res(cv.toDataURL('image/png').split(',')[1])};im.onerror=()=>rej(new Error('用紙の画像を読めません'));im.src=new URL('img/yoshiki3_r6.png',location.href).href})}
 function sendDocNote(){const no=(document.getElementById('kno').textContent||'').replace(/[^0-9]/g,'');if(!no)return;docPNG().then(b64=>{const h=no+':'+b64.length+':'+b64.slice(-200);if(h===DSENT)return;DSENT=h;return api('saveNote',{no,b64}).then(()=>heardMsg&&heardMsg('衛生士実地の用紙をNoteへ送りました（カルテ番号 '+no+'）'))}).catch(e=>{DSENT='';console.log('Note送信できません',e.message)})}
-function saveRec(){const b=document.getElementById('savebtn'),g=document.getElementById('docgo');b.textContent='✓ 保存しました（Note（サブカルテ）へ）';b.style.background='#2F9E44';document.getElementById('savenote').textContent='続けて下の「検査おわり」から文書を書きます';g.style.display='block';setTimeout(()=>g.scrollIntoView({behavior:'smooth',block:'center'}),50);}
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-21:35</div></body></html>
+/* ===== 本番：患者・保存・前回（11/18） ===== */
+const WD='日月火水木金土';function today(){const d=new Date();return {s:d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+'（'+WD[d.getDay()]+'）',k:d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')}}
+function hm(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+let SAVED=null; // 保存した行番号（同じ患者でもう一度押すと上書き）
+function clr(o){Object.keys(o).forEach(k=>delete o[k])}
+function hasData(){return Object.keys(pd).length||Object.keys(plq).some(k=>Object.values(plq[k]||{}).some(Boolean))||Object.keys(mob).length}
+function showKno(){const k=document.getElementById('kno');const v=k.textContent.trim();k.parentElement.style.background=/^\d+$/.test(v)?'':'#E03131'}
+function openKno(){let o=document.getElementById('knz');if(!o){o=document.createElement('div');o.id='knz';o.style.cssText='position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:95;display:flex;align-items:center;justify-content:center';o.onclick=e=>{if(e.target===o)o.remove()};document.body.appendChild(o)}
+ o.dataset.v='';const B=(t,f,s)=>'<button onclick="'+f+'" style="height:78px;font-size:34px;font-weight:700;border-radius:12px;border:2px solid #ccd;background:#f8f9fc;color:#1E2A44;'+(s||'')+'">'+t+'</button>';
+ o.innerHTML='<div style="background:#fff;border-radius:16px;padding:22px;width:460px"><div style="font-size:22px;font-weight:700;margin-bottom:6px">カルテ番号を入れてください</div><div style="font-size:14px;color:#667;margin-bottom:10px">決めると前回の検査を読み込みます'+(hasData()?'。<b style="color:#c00">いま入れている検査は消えます（保存してから）</b>':'')+'</div><div id="knv" style="height:64px;border:2px solid #2563EB;border-radius:10px;font-size:40px;font-weight:700;text-align:center;line-height:60px;letter-spacing:4px;margin-bottom:12px"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'+[1,2,3,4,5,6,7,8,9].map(n=>B(n,'knk('+n+')')).join('')+B('消す','knk(-1)','font-size:22px')+B(0,'knk(0)')+B('決定','knOK()','font-size:24px;background:#2563EB;color:#fff;border-color:#2563EB')+'</div><div style="text-align:right;margin-top:12px"><button onclick="document.getElementById(\'knz\').remove()" style="font-size:17px;padding:10px 22px;border-radius:10px;border:1px solid #ccd;background:#fff">やめる</button></div></div>'}
+function knk(n){const o=document.getElementById('knz');let v=o.dataset.v||'';if(n<0)v=v.slice(0,-1);else if(v.length<8)v+=n;o.dataset.v=v;document.getElementById('knv').textContent=v}
+function knOK(){const v=document.getElementById('knz').dataset.v||'';if(!v)return;document.getElementById('knz').remove();newPatient(v)}
+function newPatient(no){
+ try{if(on)mic()}catch(e){}
+ clr(pd);clr(bl);clr(plq);clr(mob);clr(pu);NA.clear();clr(TS);miss.clear();['UR8','UL8','LL8','LR8'].forEach(x=>miss.add(x));
+ cur=skip(0);last=-1;pause=null;EDIT=null;try{TAPM=null;TAUTO=false;BH=[];lastT=null;lastN=null;lastQ=null;PEND=null}catch(e){}
+ clr(T3);T4.clear();document.querySelectorAll('.row .card .chip.on').forEach(c=>c.classList.remove('on'));
+ memo.value='';REC.clear();EXTRA.length=0;prevUse={};
+ DSEL.clear();DSEL.add('ブラッシングおよびプラーク除去');DTOUCH.clear();Object.keys(DTX).forEach(k=>DTX[k]='');DFREE='';DSENT='';
+ clr(PPD);clr(PBL);clr(PPLQ);HIST.length=0;PREV.pcr=PREV.bop=PREV.p4=null;PREV.date='';PREVREC.length=0;
+ SAVED=null;const sb=document.getElementById('savebtn');sb.textContent='💾 保存して Note（サブカルテ）へ';sb.style.background='';sb.disabled=false;
+ document.getElementById('savenote').textContent='押すと検査タブに残り、用紙の画像がNoteに入ります';document.getElementById('docgo').style.display='none';
+ document.getElementById('kno').textContent=no;showKno();document.getElementById('dt').textContent=today().s;t1.value=hm();t2.value='';
+ document.querySelectorAll('#cmp b')[0].textContent='前回との比較　カルテ番号 '+no;
+ setMode(0);drawTools();drawRec();draw();try{drawDoc()}catch(e){}window.scrollTo(0,0);loadPrev(no)}
+function loadPrev(no){const h=document.getElementById('heard');if(h)h.innerHTML='<i>前回の検査を読み込み中…</i>';
+ api('getHist',{no}).then(r=>{if(document.getElementById('kno').textContent!==no)return;
+  if(!r||!r.hist||!r.hist.length){if(h)h.innerHTML='<i>前回の検査はありません（はじめて）</i>';draw();return}
+  r.hist.forEach(x=>HIST.push([x[0],+x[1]||0,+x[2]||0,+x[3]||0]));const L=r.hist[r.hist.length-1];PREV.pcr=+L[1]||0;PREV.bop=+L[2]||0;PREV.p4=+L[3]||0;PREV.date=L[0];
+  let j={};try{j=JSON.parse(r.last.json||'{}')}catch(e){}Object.assign(PPD,j.pd||{});Object.assign(PBL,j.bl||{});Object.assign(PPLQ,j.plq||{});
+  if(j.miss){miss.clear();j.miss.forEach(x=>miss.add(x))}if(j.TS)Object.assign(TS,j.TS);cur=skip(0);
+  (r.last.rec||'').split('、').map(s=>s.trim()).filter(Boolean).forEach(x=>PREVREC.push(x));
+  if(h)h.innerHTML='<i>前回 '+L[0]+' の検査を読み込みました（歯の登録も前回のまま）</i>';drawRec();draw();drawSlash()
+ }).catch(e=>{if(h)h.innerHTML='<i style="color:#c00">前回を読み込めませんでした（'+e.message+'）</i>'})}
+function recJSON(){return JSON.stringify({v:1,mode,pd,bl,pu,plq,mob,miss:[...miss],NA:[...NA],TS})}
+function loadH2C(){return window.html2canvas?Promise.resolve():new Promise((ok,ng)=>{const s=document.createElement('script');s.src='lib/html2canvas.min.js?v=141';s.onload=ok;s.onerror=()=>ng(new Error('画像の部品を読み込めません'));document.head.appendChild(s)})}
+function saveRec(){const b=document.getElementById('savebtn'),g=document.getElementById('docgo'),nt=document.getElementById('savenote');
+ const no=document.getElementById('kno').textContent.trim();if(!/^\d+$/.test(no)){alert('カルテ番号を入れてください（上の赤い欄をタップ）');openKno();return}
+ if(!lsg('pkenTanto')){alert('担当を選んでください');openStaff();return}
+ if(SAVED&&!confirm('もう一度保存しますか？（検査タブは上書き、Noteにはもう1枚入ります）'))return;
+ if(!t2.value)t2.value=hm();b.disabled=true;b.textContent='保存しています…';
+ showRec();const st=(id)=>document.getElementById(id).textContent;
+ loadH2C().then(()=>new Promise(r=>setTimeout(r,300))).then(()=>html2canvas(document.getElementById('sheet'),{scale:2,backgroundColor:'#fff',useCORS:true})).then(cv=>{
+  const W=1680,H=2382,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);const sc=Math.min((W-80)/cv.width,(H-80)/cv.height);x.drawImage(cv,40,40,cv.width*sc,cv.height*sc);const b64=c.toDataURL('image/png').split(',')[1];
+  return api('saveExam',{row:SAVED,no,date:today().k,t1:t1.value,t2:t2.value,kind:mode?'プラークだけ':'検査あり',json:recJSON(),pcr:st('pcr').replace(/[^0-9]/g,''),bop:mode?'':st('bop').replace(/[^0-9]/g,''),p4:mode?'':st('p4').replace(/[^0-9]/g,''),memo:memo.value,tools:toolsText(),instr:instrText(),rec:[...REC].join('、'),tanto:lsg('pkenTanto'),b64})
+ }).then(r=>{SAVED=r;rv.style.display='none';b.disabled=false;b.textContent='✓ 保存しました（Note（サブカルテ）へ）';b.style.background='#2F9E44';nt.textContent='続けて下の「検査おわり」から文書を書きます（直したらもう一度押せます）';g.style.display='block';setTimeout(()=>g.scrollIntoView({behavior:'smooth',block:'center'}),50)})
+ .catch(e=>{b.disabled=false;b.textContent='💾 保存して Note（サブカルテ）へ';rv.style.display='none';alert('保存できませんでした：'+e.message)})}
+(function(){const k=document.getElementById('kno');k.textContent='（タップ）';k.parentElement.style.cursor='pointer';k.parentElement.onclick=openKno;showKno();document.getElementById('dt').textContent=today().s;t1.value='';t2.value='';
+ // 前回が無いときは「前回」欄を出さない
+ const _set=set;set=function(id,txt,v,pv,u){if(pv==null){document.getElementById(id).textContent=txt;const e=document.getElementById(id+'0');e.textContent='';e.className='';return}_set(id,txt,v,pv,u)};
+ const _sr=showRec;showRec=function(){_sr();const sh=document.getElementById('sheet');sh.innerHTML=sh.innerHTML.replace('2026/11/13（金）',document.getElementById('dt').textContent).replace('担当 内田','担当 '+(lsg('pkenTanto')||''))};
+ const _sc=showCmp;showCmp=function(){_sc();const h=pq2.querySelector('h4');if(h)h.textContent=PREV.date?'前回 '+PREV.date+'　PCR '+PREV.pcr+'%':'前回なし'};
+ newPatient0()})();
+function newPatient0(){memo.value='';document.querySelectorAll('.row .card .chip.on').forEach(c=>c.classList.remove('on'));clr(T3);T4.clear();PREVREC.length=0;HIST.length=0;PREV.pcr=PREV.bop=PREV.p4=null;PREV.date='';drawTools();drawRec();draw();
+ document.getElementById('savenote').textContent='押すと検査タブに残り、用紙の画像がNoteに入ります';setTimeout(openKno,400)}
+{const _dr=drawRec;drawRec=function(){_dr();if(!PREVREC.length)prevrec.innerHTML=''}}
+drawRec();
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-22:21</div></body></html>
