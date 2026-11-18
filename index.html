@@ -729,7 +729,8 @@ function saveRec(){const b=document.getElementById('savebtn'),g=document.getElem
  const _sc=showCmp;showCmp=function(){_sc();const h=pq2.querySelector('h4');if(h)h.textContent=PREV.date?'前回 '+PREV.date+'　PCR '+PREV.pcr+'%':'前回なし'};
  newPatient0()})();
 function newPatient0(){memo.value='';document.querySelectorAll('.row .card .chip.on').forEach(c=>c.classList.remove('on'));clr(T3);T4.clear();PREVREC.length=0;HIST.length=0;PREV.pcr=PREV.bop=PREV.p4=null;PREV.date='';drawTools();drawRec();draw();
- document.getElementById('savenote').textContent='押すと検査タブに残り、用紙の画像がNoteに入ります';setTimeout(openKno,400)}
+ document.getElementById('savenote').textContent='押すと検査タブに残り、用紙の画像がNoteに入ります';setTimeout(()=>{START=true;openUI();const o=document.getElementById('uiz');if(o){const h=o.firstElementChild&&o.firstElementChild.firstElementChild;if(h)h.textContent='はじめに：入力のしかたを選んでください';const go=()=>{o.remove();if(START){START=false;openKno()}};o.onclick=e=>{if(e.target===o)go()};const bs=o.querySelectorAll('button');if(bs.length)bs[bs.length-1].onclick=go}},400)}
+let START=false;{const _u=setUI;setUI=function(m){_u(m);if(START){START=false;setTimeout(openKno,150)}}}
 {const _dr=drawRec;drawRec=function(){_dr();if(!PREVREC.length)prevrec.innerHTML=''}}
 drawRec();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-22:21</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-08:17</div></body></html>
