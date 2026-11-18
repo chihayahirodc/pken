@@ -242,8 +242,6 @@ body.ui-touch #mpad div{font-size:16px!important}
       <div class="grp" id="g3"><small>清掃用具（患者さん）</small><div class="chips" id="c3"></div></div>
       <div class="grp" id="g4"><small>使用器具（医院）</small><div class="chips" id="c4"></div></div>
       <div class="grp"><small>LA etc.</small><div class="chips"><span class="chip">LA</span><span class="chip">＋メモ</span></div></div>
-      <button class="save">保存して Note（サブカルテ）へ</button>
-      <div class="note">見本です。保存はまだ動きません</div>
     </div>
   </div>
   <div class="card" style="margin-top:10px">
@@ -252,7 +250,9 @@ body.ui-touch #mpad div{font-size:16px!important}
     <div class="rec"><div class="rh"><b>おすすめの清掃用具・物販</b><small>検査の結果から候補を出します。DHがタップしたものだけ業務記録と患者さん用の紙に入ります（値段は載せません）</small></div>
       <div id="prevrec" class="prevrec"></div><div id="sug" class="sug"></div></div>
     <textarea id="memo" style="width:100%;height:64px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;font-family:inherit">指導内容：プラークの付着状況と歯肉の状態を説明し、バス法を指導。歯間ブラシの使い方を説明</textarea>
-    <button id="docgo" onclick="openDoc()" style="display:block;width:100%;margin-top:14px;height:76px;font-size:24px;font-weight:700;border:0;border-radius:12px;background:#E8590C;color:#fff;box-shadow:0 0 0 4px #FFD8A8">✅ 検査おわり → 📄 文書（口腔衛生管理）を書く</button>
+    <button class="save" id="savebtn" onclick="saveRec()" style="height:64px;font-size:20px;margin-top:12px">💾 保存して Note（サブカルテ）へ</button>
+    <div class="note" id="savenote">見本です。保存はまだ動きません（押すと下に「検査おわり」が出ます）</div>
+    <button id="docgo" onclick="openDoc()" style="display:none;width:100%;margin-top:14px;height:76px;font-size:24px;font-weight:700;border:0;border-radius:12px;background:#E8590C;color:#fff;box-shadow:0 0 0 4px #FFD8A8">✅ 検査おわり → 📄 文書（口腔衛生管理）を書く</button>
   </div>
 </div>
 <div id="cmp"><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px;color:var(--g)">前回との比較　カルテ番号 1234</b><button onclick="cmp.style.display='none'" style="height:36px;border:none;border-radius:8px;padding:0 16px;background:var(--gl)">閉じる</button></div><div class="tr" id="trend"></div><div class="pq2" id="pq2"></div></div></div>
@@ -675,4 +675,5 @@ function docPNG(){return new Promise((res,rej)=>{const S=2,cv=document.createEle
   tx('千早並木通りひろ歯科クリニック',300,967,18);tx('〒813-0044 福岡市東区千早4-11-14　TEL 092-681-6650',300,1021,14);tx(lsg('pkenTanto')||'',396,1067,16);
   res(cv.toDataURL('image/png').split(',')[1])};im.onerror=()=>rej(new Error('用紙の画像を読めません'));im.src=new URL('img/yoshiki3_r6.png',location.href).href})}
 function sendDocNote(){const no=(document.getElementById('kno').textContent||'').replace(/[^0-9]/g,'');if(!no)return;docPNG().then(b64=>{const h=no+':'+b64.length+':'+b64.slice(-200);if(h===DSENT)return;DSENT=h;return api('saveNote',{no,b64}).then(()=>heardMsg&&heardMsg('衛生士実地の用紙をNoteへ送りました（カルテ番号 '+no+'）'))}).catch(e=>{DSENT='';console.log('Note送信できません',e.message)})}
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-22:20</div></body></html>
+function saveRec(){const b=document.getElementById('savebtn'),g=document.getElementById('docgo');b.textContent='✓ 保存しました（Note（サブカルテ）へ）';b.style.background='#2F9E44';document.getElementById('savenote').textContent='続けて下の「検査おわり」から文書を書きます';g.style.display='block';setTimeout(()=>g.scrollIntoView({behavior:'smooth',block:'center'}),50);}
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/18-21:35</div></body></html>
