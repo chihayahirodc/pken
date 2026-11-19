@@ -249,7 +249,7 @@ body.ui-touch #mpad div{font-size:16px!important}
   <div class="card" style="margin-top:10px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><b style="color:var(--g)">歯科衛生士業務記録</b><small style="color:#889">よく使う言葉をタップすると下に入ります（言葉は設定で変えられます）</small><div style="flex:1"></div><button onclick="showRec()" style="height:38px;border:1px solid var(--g);background:#fff;color:var(--g);border-radius:8px;padding:0 14px;font-weight:600">Noteに貼る記録を見る</button></div>
     <div class="chips" id="wt" style="margin-bottom:5px"></div><div class="chips" id="wd" style="margin-bottom:6px;max-height:120px;overflow:auto"></div>
-    <div class="rec"><div class="rh"><b>おすすめの清掃用具・物販</b><small>検査の結果から候補を出します。DHがタップしたものだけ業務記録と患者さん用の紙に入ります（値段は載せません）</small></div>
+    <div class="rec"><div class="rh"><b>おすすめの清掃用具・物販</b><small>検査の結果から候補を出します。DHがタップしたもの（<b style="color:#C92A2A">3つまで</b>）だけ業務記録と患者さん用の紙に入ります（値段は載せません）</small></div>
       <div id="prevrec" class="prevrec"></div><div id="sug" class="sug"></div></div>
     <textarea id="memo" style="width:100%;height:64px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;font-family:inherit"></textarea>
     <button class="save" id="savebtn" onclick="saveRec()" style="height:64px;font-size:20px;margin-top:12px">💾 保存して Note へ → 文書を書く</button>
@@ -846,4 +846,100 @@ saveDoc=function(){const b=document.getElementById('dsave');const no=(document.g
 {const _od=openDoc;openDoc=function(){_od();const b=document.getElementById('dsave');if(b&&DOCWAIT){b.textContent='⏳ 保存待機中（もう一度押すと上書き）';b.style.background='#E8590C'}}}
 // 保存が終わったら最初の画面（入力のしかた→カルテ番号）へ
 function goStart(){try{closeDoc()}catch(e){}location.replace(location.pathname+'?v='+Date.now())}
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-14:35</div></body></html>
+// ===== 患者さん用の紙（歯ぐきの検査結果）11/19 =====
+(function(){const css=document.createElement('style');css.textContent=`
+#ptz{position:fixed;inset:0;z-index:300;background:#5b6475;overflow:auto;display:none;-webkit-overflow-scrolling:touch}
+#ptz .tb{position:sticky;top:0;z-index:2;display:flex;gap:12px;justify-content:center;padding:10px;background:#2B3445}
+#ptz .tb button{height:56px;border:none;border-radius:12px;padding:0 26px;font-size:19px;font-weight:700}
+#ptz .wrapP{display:flex;justify-content:center;padding:14px 0 40px}
+.ppg{width:794px;height:1123px;background:#fff;padding:32px 40px 24px;position:relative;font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:#404040;transform-origin:top center;overflow:hidden}
+.ppg .top{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #5FA51E;padding-bottom:10px}
+.ppg .top img{height:38px}.ppg .top .dt{text-align:right;font-size:13px;line-height:1.6}
+.ppg h1{font-size:26px;color:#427F01;margin:10px 0 0;letter-spacing:2px}
+.ppg .nm{font-size:17px;margin-bottom:8px}.ppg .lead{font-size:13px;color:#555;margin:0 0 10px}
+.ppg .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ppg .cd{border-radius:14px;padding:9px 12px 8px;text-align:center;border:2px solid}
+.ppg .cd h3{margin:0;font-size:14px}.ppg .cd small{display:block;font-size:11px;color:#666;margin-top:1px}
+.ppg .cd .v{font-size:30px;font-weight:700;margin:4px 0 0;line-height:1.1}.ppg .cd .v u{font-size:17px;text-decoration:none}
+.ppg .cd .pv{font-size:12px;color:#555}.ppg .cd .bd{display:inline-block;margin-top:6px;padding:3px 14px;border-radius:14px;color:#fff;font-size:13px;font-weight:700}
+.ppg .g{border-color:#5FA51E;background:#F1F8E8}.ppg .g .v{color:#427F01}.ppg .g .bd{background:#5FA51E}
+.ppg .y{border-color:#E3A008;background:#FDF6E3}.ppg .y .v{color:#B07A00}.ppg .y .bd{background:#E3A008}
+.ppg .r{border-color:#E8737A;background:#FDEEEF}.ppg .r .v{color:#C9424B}.ppg .r .bd{background:#E8737A}
+.ppg h2{font-size:15px;color:#427F01;margin:8px 0 4px;padding-left:9px;border-left:5px solid #5FA51E}
+.ppg .two{display:grid;grid-template-columns:1.15fr 1fr;gap:16px}
+.ppg .lg{display:flex;gap:10px;font-size:11px;flex-wrap:wrap;margin-top:2px}.ppg .lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:3px;vertical-align:-2px}
+.ppg .trd{display:flex;gap:14px}.ppg .trd .bx{flex:1}.ppg .trd h4{margin:0 0 2px;font-size:12px;color:#555}
+.ppg .bars{display:flex;align-items:flex-end;gap:8px;height:52px;border-bottom:1px solid #ccc}
+.ppg .bars div{flex:1;text-align:center;font-size:10px;color:#777}.ppg .bars i{display:block;border-radius:4px 4px 0 0;margin:0 auto 2px;width:70%;background:#C9DDB0}
+.ppg .bars div.now i{background:#5FA51E}.ppg .bars b{display:block;font-size:11px;color:#404040}
+.ppg .tk{background:#F6F8F3;border-radius:12px;padding:8px 12px;font-size:12px;line-height:1.6}
+.ppg .hw{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ppg .hw div{border:1.5px solid #cfe3b5;border-radius:10px;padding:4px 8px;font-size:12px}.ppg .hw div:before{content:"☐ ";color:#5FA51E;font-weight:700}
+.ppg .rc{margin-top:8px;border:2px solid #4A90D0;background:#F0F6FC;border-radius:14px;padding:6px 14px 8px}
+.ppg .rc>b{color:#2F6FAF;font-size:15px;display:block;margin-bottom:4px}
+.ppg .rcl{display:flex;flex-wrap:wrap;gap:12px}
+.ppg .rci{width:112px;text-align:center}.ppg .rci .ph{width:112px;height:112px;background:#fff;border:1px solid #cfe0f3;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:50px}
+.ppg .rci .ph img{width:100%;height:100%;object-fit:contain}
+.ppg .rci span{display:block;font-size:12px;font-weight:700;color:#2F6FAF;margin-top:4px;line-height:1.35}
+.ppg .ng{border:2px solid #E8737A;border-radius:12px;padding:5px 12px;margin-top:8px;font-size:11px;line-height:1.55}.ppg .ng b{color:#C9424B}
+.ppg .ft{position:absolute;left:40px;right:40px;bottom:18px;display:flex;justify-content:space-between;font-size:11px;color:#777;border-top:1px solid #ddd;padding-top:6px}
+@media print{@page{size:A4;margin:0}
+ body>*:not(#ptz){display:none!important}html,body{background:#fff!important;overflow:visible!important;height:auto!important;margin:0!important;padding:0!important;min-height:0!important}
+ #ptz{position:static!important;display:block!important;background:#fff!important;overflow:hidden!important;height:1120px!important}
+ #ptz .tb{display:none!important}#ptz .wrapP{padding:0!important;display:block!important;height:auto!important}
+ .ppg{transform:none!important;margin:0!important;height:1120px!important;page-break-after:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}}`;document.head.appendChild(css)})();
+function ptNum(id){const t=(document.getElementById(id)||{}).textContent||'';const m=t.match(/\d+/);return m?+m[0]:null}
+function ptMD(d){const m=String(d||'').match(/\d{4}\/(\d{1,2})\/(\d{1,2})/);return m?(+m[1])+'/'+(+m[2]):String(d||'')}
+function ptEv(v,good,bad){return v==null?['g','－']:v<good?['g','よい']:v>=bad?['r','要注意']:['y','もう少し']}
+function ptDiff(cur,prev,u){if(prev==null||cur==null)return '前回の記録なし';const d=cur-prev;return '前回 '+prev+u+' → '+(d<0?'<b>'+(-d)+u+'へった</b>':d>0?'<b>'+d+u+'ふえた</b>':'変わらず')}
+function ptSheet(){
+ const no=document.getElementById('kno').textContent.trim(),nm=(typeof NMC!=='undefined'&&NMC[no])||'';
+ const dk=(window.REDATE||today().k),m=dk.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);const dS=m?m[1]+'年'+(+m[2])+'月'+(+m[3])+'日':dk;
+ const pcr=ptNum('pcr'),bop=mode?null:ptNum('bop'),p4=mode?null:ptNum('p4');
+ const pv=PREV||{};
+ const card=(t,s,v,u,e,df)=>'<div class="cd '+e[0]+'"><h3>'+t+'</h3><small>'+s+'</small><div class="v">'+(v==null?'－':v)+'<u>'+u+'</u></div><div class="pv">'+df+'</div><span class="bd">'+e[1]+'</span></div>';
+ let cards='';
+ if(!mode)cards+=card('歯ぐきからの出血','検査で血が出た所の割合',bop,'%',ptEv(bop,10,30),ptDiff(bop,pv.bop,'%'));
+ cards+=card('みがき残し','歯の面のうち汚れがついた割合',pcr,'%',ptEv(pcr,20,40),ptDiff(pcr,pv.pcr,'%'));
+ if(!mode)cards+=card('深いすき間（ポケット）','4mm以上の場所の数',p4,'か所',ptEv(p4,1,10),ptDiff(p4,pv.p4,'か所'));
+ // lead
+ let lead='今日の歯ぐきの検査の結果です。';
+ if(pv.pcr!=null&&pcr!=null){const pairs=[[pcr,pv.pcr]];if(!mode){pairs.push([bop,pv.bop]);pairs.push([p4,pv.p4])}
+  const up=pairs.filter(([a,b])=>a!=null&&b!=null&&a<b).length,dn=pairs.filter(([a,b])=>a!=null&&b!=null&&a>b).length;
+  lead+='前回（'+ptMD(pv.date)+'）'+(dn==0&&up>0?'より、よくなっています。この調子で続けましょう。':up>dn?'より、よくなっているところがあります。この調子で続けましょう。':dn>0?'より、少し気になるところがあります。いっしょにがんばりましょう。':'と同じくらいです。この調子で続けましょう。')}
+ // map
+ const mx={},bt=new Set();Object.keys(pd).forEach(k=>{const id=k.slice(0,3);if(miss.has(id))return;const v=pd[k];if(v!=null&&!isNaN(v))mx[id]=Math.max(mx[id]||0,+v);if(bl[k])bt.add(id)});
+ const col=(id)=>miss.has(id)?'#ddd':mx[id]==null?'#eee':mx[id]>=6?'#E8737A':mx[id]>=4?'#F2C14E':'#8CC84B';
+ let s='<text x="200" y="16" font-size="12" text-anchor="middle" fill="#777">上の歯</text><text x="200" y="296" font-size="12" text-anchor="middle" fill="#777">下の歯</text><text x="18" y="150" font-size="12" fill="#777">右</text><text x="372" y="150" font-size="12" fill="#777">左</text>';
+ const W=[10,10,10.5,11,11.5,13,14.5,14.5];
+ [1,0].forEach(up=>{const q=up?['UR','UL']:['LR','LL'];for(let side=0;side<2;side++)for(let t=1;t<=8;t++){const a=(t-0.5)/8*86*Math.PI/180,sx=side?1:-1;const x=200+sx*150*Math.sin(a),y=up?(140-108*Math.cos(a)):(160+108*Math.cos(a));const id=q[side]+t,r=W[t-1];
+  s+='<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+col(id)+'" stroke="#fff" stroke-width="2"/><text x="'+x+'" y="'+(y+4)+'" font-size="11" text-anchor="middle" fill="'+(miss.has(id)?'#aaa':'#333')+'" font-weight="600">'+t+'</text>';
+  if(bt.has(id))s+='<circle cx="'+(x+r*.75)+'" cy="'+(y-r*.75)+'" r="4" fill="#C9424B" stroke="#fff" stroke-width="1.2"/>'}});
+ const mapH=mode?'':'<div class="two"><div><h2>歯ぐきの地図</h2><svg viewBox="0 0 400 300" width="100%" style="height:180px">'+s+'</svg><div class="lg"><span><i style="background:#8CC84B"></i>健康（3mmまで）</span><span><i style="background:#F2C14E"></i>注意（4〜5mm）</span><span><i style="background:#E8737A"></i>治療が必要（6mm以上）</span><span><i style="background:#ddd"></i>歯がない所</span><span><b style="color:#C9424B">●</b> 出血</span></div></div>'+
+  '<div><h2>ポケットってなに？</h2><svg viewBox="0 0 320 124" width="100%"><g font-size="11" text-anchor="middle" fill="#404040"><g transform="translate(55,0)"><rect x="-18" y="8" width="36" height="70" rx="12" fill="#fff" stroke="#bbb"/><rect x="-30" y="52" width="60" height="38" fill="#F4A9B0"/><rect x="-20" y="46" width="2" height="8" fill="#5FA51E"/><text y="108">2〜3mm</text><text y="121" fill="#427F01">健康</text></g><g transform="translate(160,0)"><rect x="-18" y="8" width="36" height="70" rx="12" fill="#fff" stroke="#bbb"/><rect x="-30" y="56" width="60" height="34" fill="#F4A9B0"/><rect x="-20" y="50" width="3" height="18" fill="#E3A008"/><text y="108">4〜5mm</text><text y="121" fill="#B07A00">歯周病のはじまり</text></g><g transform="translate(265,0)"><rect x="-18" y="8" width="36" height="70" rx="12" fill="#fff" stroke="#bbb"/><rect x="-30" y="66" width="60" height="24" fill="#F4A9B0"/><rect x="-20" y="52" width="3" height="30" fill="#E8737A"/><text y="108">6mm以上</text><text y="121" fill="#C9424B">進んだ歯周病</text></g></g></svg><p style="font-size:12px;line-height:1.6;margin:4px 0 0">歯と歯ぐきのあいだの「すき間」の深さです。深くなるほど汚れがたまり、歯をささえる骨がとけていきます。</p></div></div>';
+ // history bars
+ const H=HIST.slice(-3).map(r=>[ptMD(r[0]),r[1],r[2],r[3]]);H.push(['今回',pcr,bop,p4]);
+ const bars=(i,mxv)=>'<div class="bars">'+H.map((r,j)=>'<div class="'+(j==H.length-1?'now':'')+'"><b>'+(r[i]==null?'－':r[i])+'</b><i style="height:'+Math.max(3,(r[i]||0)/mxv*30)+'px"></i>'+r[0]+'</div>').join('')+'</div>';
+ const mxOf=(i,d)=>Math.max(d,...H.map(r=>r[i]||0));
+ const trH=H.length>1?'<h2>これまでの変化</h2><div class="trd"><div class="bx"><h4>みがき残し（%）</h4>'+bars(1,mxOf(1,50))+'</div>'+(mode?'':'<div class="bx"><h4>歯ぐきからの出血（%）</h4>'+bars(2,mxOf(2,50))+'</div><div class="bx"><h4>深いすき間（か所）</h4>'+bars(3,mxOf(3,10))+'</div>')+'</div>':'';
+ // talk & home
+ const tk=memo.value.split(/\n|。/).map(x=>x.replace(/^(指導内容|指導等の評価|指導管理の実施時間)：/,'').trim()).filter(x=>x&&!/^(おすすめ|前回おすすめ)：/.test(x)&&!/^\d/.test(x)).slice(0,4);
+ const hw=Object.keys(T3).map(n=>n+(T3[n].length?'（'+T3[n].join('・')+'）':''));if(!mode&&p4)hw.push('黄色・赤の歯は特にていねいに');hw.push('定期的な検診で歯ぐきのチェックを');
+ const rec=[...REC];
+ const rcH=rec.length?'<div class="rc"><b>あなたへのおすすめ</b><div class="rcl">'+rec.map(n=>'<div class="rci"><div class="ph">'+(gImg(n)||icon(n))+'</div><span>'+esc(n)+'</span></div>').join('')+'</div></div>':'';
+ return '<div class="ppg" id="ppg"><div class="top"><img src="img/logo.png"><div class="dt">検査日　'+dS+'<br>次回のご予約　　月　　日</div></div><h1>歯ぐきの検査結果</h1>'+
+  '<div class="nm">'+(nm?esc(nm):'<span style="display:inline-block;min-width:200px;border-bottom:1px solid #999">&nbsp;</span>')+'　様</div><p class="lead">'+lead+'</p>'+
+  '<div class="cards" style="grid-template-columns:repeat('+(mode?1:3)+',1fr)'+(mode?';max-width:260px':'')+'">'+cards+'</div>'+mapH+trH+
+  '<div class="two" style="margin-top:2px"><div><h2>今日のお話</h2><div class="tk">'+(tk.length?'<ul style="margin:0;padding-left:18px">'+tk.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<div style="color:#999">（業務記録から入ります）</div>')+'</div></div><div><h2>おうちでのお願い</h2><div class="hw">'+hw.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div></div></div>'+rcH+
+  '<div class="ng"><b>やってはいけないこと</b>　①血が出ても歯みがきをやめない（汚れがたまるとかえって悪くなります）　②強くゴシゴシみがかない（歯ぐきが下がります）　③痛くないからと検診をやめない（歯周病は痛みなく進みます）</div>'+
+  '<div class="ft"><span>千早並木通りひろ歯科クリニック</span><span>わからないことは、お気軽にスタッフにご相談ください</span></div></div>'}
+function ptFit(){const p=document.getElementById('ppg');if(!p)return;const sc=Math.min(1,(window.innerWidth-24)/794);p.style.transform='scale('+sc+')';p.parentNode.style.height=(1123*sc+50)+'px'}
+function openPt(){let z=document.getElementById('ptz');if(!z){z=document.createElement('div');z.id='ptz';document.body.appendChild(z)}
+ z.innerHTML='<div class="tb"><button onclick="window.print()" style="background:#5FA51E;color:#fff">🖨 印刷</button><button onclick="closePt()" style="background:#fff;color:#1E2A44">✕ 閉じる</button></div><div class="wrapP">'+ptSheet()+'</div>';
+ z.style.display='block';z.scrollTop=0;ptFit()}
+function closePt(){const z=document.getElementById('ptz');if(z)z.style.display='none'}
+window.addEventListener('resize',ptFit);
+(function(){const a=REC.add.bind(REC);REC.add=function(x){if(!this.has(x)&&this.size>=3){try{toast('おすすめは3つまでです')}catch(e){}return this}return a(x)}})();
+(function(){const b=document.getElementById('savebtn');if(b&&!document.getElementById('ptbtn')){const x=document.createElement('button');x.id='ptbtn';x.onclick=openPt;x.textContent='🖨 患者さん用の紙（検査結果）';x.style.cssText='height:52px;font-size:17px;margin-top:10px;width:100%;border:2px solid #5FA51E;background:#F1F8E8;color:#427F01;border-radius:12px;font-weight:700';const nx=b.nextElementSibling;(nx&&nx.tagName!=='BUTTON'?nx:b).after(x)}})();
+const drawDoc_pt=drawDoc;drawDoc=function(){const r=drawDoc_pt.apply(this,arguments);const sd=document.getElementById('dside');if(sd&&!document.getElementById('dpt')){const x=document.createElement('button');x.id='dpt';x.onclick=openPt;x.textContent='🖨 患者さん用の紙';x.style.cssText='height:56px;font-size:18px;background:#F1F8E8;color:#427F01;border:2px solid #5FA51E;font-weight:700';const ds=document.getElementById('dsave');(ds||sd.firstChild).after(x)}return r};
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-15:20</div></body></html>
