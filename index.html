@@ -696,7 +696,7 @@ function openKno(){let o=document.getElementById('knz');if(!o){o=document.create
 function knk(n){const o=document.getElementById('knz');let v=o.dataset.v||'';if(n<0)v=v.slice(0,-1);else if(v.length<8)v+=n;o.dataset.v=v;document.getElementById('knv').textContent=v;knName(v)}
 let KNT=null,NMC={};function knName(v){const e=document.getElementById('knm');if(!e)return;clearTimeout(KNT);if(!v){e.textContent='';return}if(v in NMC){e.innerHTML=NMC[v]?String(NMC[v]).replace(/</g,'&lt;')+' 様':'<span style="color:#c00;font-size:17px">名簿にない番号です</span>';return}e.innerHTML='<span style="color:#889;font-size:16px">名前を確認中…</span>';KNT=setTimeout(()=>api('getName',{no:v}).then(n=>{NMC[v]=n||'';const o=document.getElementById('knz');if(o&&o.dataset.v===v)knName(v);showPn()}).catch(()=>{if(document.getElementById('knm'))document.getElementById('knm').textContent=''}),450)}
 function showPn(){const no=document.getElementById('kno').textContent.trim();let e=document.getElementById('pnm');if(!e){e=document.createElement('b');e.id='pnm';e.style.cssText='margin-left:8px;font-size:17px';document.getElementById('kno').after(e)}e.textContent=NMC[no]?NMC[no]+' 様':''}
-function knOK(){const v=document.getElementById('knz').dataset.v||'';if(!v)return;document.getElementById('knz').remove();newPatient(v)}
+function knOK(){const v=document.getElementById('knz').dataset.v||'';if(!v)return;document.getElementById('knz').remove();newPatient(v);setTimeout(openStaff,200)}
 function newPatient(no){
  try{if(on)mic()}catch(e){}
  clr(pd);clr(bl);clr(plq);clr(mob);clr(pu);NA.clear();clr(TS);miss.clear();['UR8','UL8','LL8','LR8'].forEach(x=>miss.add(x));
@@ -743,4 +743,4 @@ function newPatient0(){memo.value='';document.querySelectorAll('.row .card .chip
 let START=false;{const _u=setUI;setUI=function(m){_u(m);if(START){START=false;setTimeout(openKno,150)}}}
 {const _dr=drawRec;drawRec=function(){_dr();if(!PREVREC.length)prevrec.innerHTML=''}}
 drawRec();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-09:05</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-09:40</div></body></html>
