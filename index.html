@@ -689,7 +689,7 @@ function sendDocNote(){const no=(document.getElementById('kno').textContent||'')
 /* ===== 本番：患者・保存・前回（11/18） ===== */
 const WD='日月火水木金土';function today(){const d=new Date();return {s:d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+'（'+WD[d.getDay()]+'）',k:d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')}}
 function hm(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
-let SAVED=null; // 保存した行番号（同じ患者でもう一度押すと上書き）
+let SAVED=null,SENT=false; // 保存した行番号（同じ患者でもう一度押すと上書き）
 function clr(o){Object.keys(o).forEach(k=>delete o[k])}
 function hasData(){return Object.keys(pd).length||Object.keys(plq).some(k=>Object.values(plq[k]||{}).some(Boolean))||Object.keys(mob).length}
 function showKno(){const k=document.getElementById('kno');const v=k.textContent.trim();k.parentElement.style.background=/^\d+$/.test(v)?'':'#E03131'}
@@ -708,7 +708,7 @@ function newPatient(no){
  memo.value='';REC.clear();EXTRA.length=0;prevUse={};
  DSEL.clear();DSEL.add('ブラッシングおよびプラーク除去');DTOUCH.clear();Object.keys(DTX).forEach(k=>DTX[k]='');DFREE='';DSENT='';
  clr(PPD);clr(PBL);clr(PPLQ);HIST.length=0;PREV.pcr=PREV.bop=PREV.p4=null;PREV.date='';PREVREC.length=0;
- SAVED=null;const sb=document.getElementById('savebtn');sb.textContent='💾 保存して Note へ → 文書を書く';sb.style.background='';sb.disabled=false;
+ SAVED=null;SENT=false;t2.style.background='';t2.style.outline='';const sb=document.getElementById('savebtn');sb.textContent='💾 保存して Note へ → 文書を書く';sb.style.background='';sb.disabled=false;
  document.getElementById('savenote').textContent='押すと検査タブに残り、用紙の画像がNoteに入って、そのまま文書（口腔衛生管理）が開きます';document.getElementById('docgo').style.display='none';
  document.getElementById('kno').textContent=no;showKno();if(!(no in NMC))api('getName',{no}).then(n=>{NMC[no]=n||'';showPn()}).catch(()=>{});showPn();document.getElementById('dt').textContent=today().s;t1.value=hm();t2.value='';
  document.querySelectorAll('#cmp b')[0].textContent='前回との比較　カルテ番号 '+no;
@@ -727,13 +727,13 @@ function loadH2C(){return window.html2canvas?Promise.resolve():new Promise((ok,n
 function saveRec(){const b=document.getElementById('savebtn'),g=document.getElementById('docgo'),nt=document.getElementById('savenote');
  const no=document.getElementById('kno').textContent.trim();if(!/^\d+$/.test(no)){alert('カルテ番号を入れてください（上の赤い欄をタップ）');openKno();return}
  if(!lsg('pkenTanto')){alert('担当を選んでください');openStaff();return}
- if(SAVED&&!confirm('もう一度保存しますか？（検査タブは上書き、Noteにはもう1枚入ります）'))return;
- if(!t2.value){t2.style.background='#FFE3E3';t2.style.outline='3px solid #E03131';alert('終了時刻を入れてください（上の「時間」の右側）');try{t2.focus();t2.showPicker&&t2.showPicker()}catch(e){}return}t2.style.background='';t2.style.outline='';b.disabled=true;b.textContent='保存しています…';
+ if(SAVED&&SENT&&!confirm('もう一度保存しますか？（検査タブは上書き、Noteにはもう1枚入ります）'))return;
+ const noEnd=!t2.value;t2.style.background=noEnd?'#FFE3E3':'';t2.style.outline=noEnd?'3px solid #E03131':'';b.disabled=true;b.textContent='保存しています…';
  showRec();const st=(id)=>document.getElementById(id).textContent;
  loadH2C().then(()=>new Promise(r=>setTimeout(r,300))).then(()=>html2canvas(document.getElementById('sheet'),{scale:2,backgroundColor:'#fff',useCORS:true})).then(cv=>{
-  const W=1680,H=2382,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);const sc=Math.min((W-80)/cv.width,(H-80)/cv.height);x.drawImage(cv,40,40,cv.width*sc,cv.height*sc);const b64=c.toDataURL('image/png').split(',')[1];
+  const W=1680,H=2382,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);const sc=Math.min((W-80)/cv.width,(H-80)/cv.height);x.drawImage(cv,40,40,cv.width*sc,cv.height*sc);const b64=noEnd?'':c.toDataURL('image/png').split(',')[1];
   return api('saveExam',{row:SAVED,no,date:today().k,t1:t1.value,t2:t2.value,kind:mode?'プラークだけ':'検査あり',json:recJSON(),pcr:st('pcr').replace(/[^0-9]/g,''),bop:mode?'':st('bop').replace(/[^0-9]/g,''),p4:mode?'':st('p4').replace(/[^0-9]/g,''),memo:memo.value,tools:toolsText(),instr:instrText(),rec:[...REC].join('、'),tanto:lsg('pkenTanto'),b64})
- }).then(r=>{SAVED=r;rv.style.display='none';b.disabled=false;b.textContent='✓ 保存しました（Note（サブカルテ）へ）';b.style.background='#2F9E44';nt.textContent='保存しました。続けて文書が開きます（直したらもう一度押せます）';g.style.display='block';g.textContent='📄 文書（口腔衛生管理）をもう一度開く';setTimeout(openDoc,150)})
+ }).then(r=>{SAVED=r;if(!noEnd)SENT=true;rv.style.display='none';b.disabled=false;if(noEnd){b.textContent='⏱ 終了時刻を入れて もう一度保存（Noteへ）';b.style.background='#E8590C';nt.textContent='検査は保存しました。終了時刻（上の「時間」の右）を入れてからもう一度押すと、Noteに入ります';}else{b.textContent='✓ 保存しました（Note（サブカルテ）へ）';b.style.background='#2F9E44';nt.textContent='保存しました（直したらもう一度押せます）';}g.style.display='block';g.textContent='📄 文書（口腔衛生管理）をもう一度開く';setTimeout(openDoc,150)})
  .catch(e=>{b.disabled=false;b.textContent='💾 保存して Note へ → 文書を書く';rv.style.display='none';alert('保存できませんでした：'+e.message)})}
 (function(){const k=document.getElementById('kno');k.textContent='（タップ）';k.parentElement.style.cursor='pointer';k.parentElement.onclick=openKno;showKno();document.getElementById('dt').textContent=today().s;t1.value='';t2.value='';
  // 前回が無いときは「前回」欄を出さない
@@ -746,4 +746,4 @@ function newPatient0(){memo.value='';document.querySelectorAll('.row .card .chip
 let START=false;{const _u=setUI;setUI=function(m){_u(m);if(START){START=false;setTimeout(openKno,150)}}}
 {const _dr=drawRec;drawRec=function(){_dr();if(!PREVREC.length)prevrec.innerHTML=''}}
 drawRec();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-10:36</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-10:40</div></body></html>
