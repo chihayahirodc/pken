@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><style>html,body,*{touch-action:manipulation}</style>
 <title>P検アプリ</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <style>
 :root{--g:#1E2A44;--g2:#3B82F6;--gl:#EEF2F8;--t:#333;--line:#cfd6e2;--red:#E0383E;--bg:#f4f6f9}
@@ -844,4 +844,4 @@ saveDoc=function(){const b=document.getElementById('dsave');const no=(document.g
  }).then(r=>{b.disabled=false;if(r==='wait'){b.textContent='⏳ 保存待機中（検査がそろったらNoteへ）';b.style.background='#E8590C';toast('📁 実地は保存待機中です。検査がそろって保存するとNoteに入ります');setTimeout(closeDoc,900)}else{b.textContent=r==='same'?'✓ 保存済み（変更なし）':'✓ Noteに保存しました';b.style.background='#1E2A44';toast('✓ 実地の用紙をNoteに保存しました');setTimeout(closeDoc,900)}})
  .catch(e=>{b.disabled=false;b.textContent='💾 保存（Noteへ）';b.style.background='#2F9E44';alert('保存できませんでした（'+e.message+'）')})};
 {const _od=openDoc;openDoc=function(){_od();const b=document.getElementById('dsave');if(b&&DOCWAIT){b.textContent='⏳ 保存待機中（もう一度押すと上書き）';b.style.background='#E8590C'}}}
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-13:20</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-14:00</div></body></html>
