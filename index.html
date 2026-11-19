@@ -779,16 +779,24 @@ function openTodoRow(row){if(hasData()&&!SAVED&&!confirm('いま入れている�
   (r.hist||[]).forEach(x=>HIST.push([x[0],+x[1]||0,+x[2]||0,+x[3]||0]));if(r.hist&&r.hist.length){const L=r.hist[r.hist.length-1];PREV.pcr=+L[1]||0;PREV.bop=+L[2]||0;PREV.p4=+L[3]||0;PREV.date=L[0]}
   if(r.last){let k={};try{k=JSON.parse(r.last.json||'{}')}catch(e){}Object.assign(PPD,k.pd||{});Object.assign(PBL,k.bl||{});Object.assign(PPLQ,k.plq||{})}
   document.getElementById('dt').textContent=fmtD(r.date).replace(/^/,String(r.date).slice(0,4)+'/');t1.value=r.t1||'';t2.value=r.t2||'';
-  SAVED=r.row;SENT=false;updSaveBtn();
-  document.getElementById('savenote').textContent='未完成ホルダから開いた検査です（'+fmtD(r.date)+'）。終了時刻・業務記録を入れて保存してください';
-  const h=document.getElementById('heard');if(h)h.innerHTML='<i>未完成ホルダから開きました：'+fmtD(r.date)+' '+esc(r.t1)+'</i>';
+  SAVED=r.row;SENT=false;FROMBOX=true;updSaveBtn();
+  document.getElementById('savenote').textContent='未完成ボックスから開いた検査です（'+fmtD(r.date)+'）。終了時刻・業務記録を入れて保存してください';
+  const h=document.getElementById('heard');if(h)h.innerHTML='<i>未完成ボックスから開きました：'+fmtD(r.date)+' '+esc(r.t1)+'</i>';
   cur=skip(0);drawTools();drawRec();draw();try{drawSlash()}catch(e){}try{drawDoc()}catch(e){}
   const o=document.getElementById('tdz');if(o)o.remove();if(!r.t2)setTimeout(()=>{t2.scrollIntoView({block:'center'});t2.style.background='#FFE3E3';t2.style.outline='3px solid #E03131'},200)
  }).catch(e=>{alert('開けませんでした（'+e.message+'）');drawTodo()})}
+let FROMBOX=false;
+function boxErr(noEnd,noMemo,left){let e=document.getElementById('boxerr');
+ if(!FROMBOX||SENT){if(e)e.remove();return}
+ t2.style.background=noEnd?'#FFE3E3':'';t2.style.outline=noEnd?'3px solid #E03131':'';memo.style.outline=noMemo?'3px solid #E03131':'';memo.style.background=noMemo?'#FFF5F5':'';
+ if(!e){e=document.createElement('div');e.id='boxerr';e.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:96px;z-index:70;max-width:92vw;padding:10px 18px;border-radius:12px;font-size:18px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.2);display:flex;gap:10px;align-items:center;flex-wrap:wrap';document.body.appendChild(e)}
+ const it=[];if(noEnd)it.push('<button onclick="t2.scrollIntoView({block:\'center\'});t2.focus()" style="font-size:17px;font-weight:700;padding:6px 12px;border-radius:8px;border:2px solid #fff;background:#fff;color:#C92A2A">終了時刻 ▶</button>');if(noMemo)it.push('<button onclick="memo.scrollIntoView({block:\'center\'});memo.focus()" style="font-size:17px;font-weight:700;padding:6px 12px;border-radius:8px;border:2px solid #fff;background:#fff;color:#C92A2A">業務記録 ▶</button>');
+ const h=it.length?'⚠ 未入力：'+it.join('')+(left>0?'<span style="font-size:15px">（開始から20分まで あと'+left+'分）</span>':''):left>0?'⏱ 入力はそろいました。開始から20分まで あと'+left+'分（たったら保存でNoteへ）':'✓ そろいました。下の「Noteに保存」を押してください';
+ e.style.background=it.length?'#E03131':left>0?'#F59F00':'#2F9E44';e.style.color='#fff';if(e.dataset.h!==h){e.innerHTML=h;e.dataset.h=h}}
 function updSaveBtn(){const b=document.getElementById('savebtn');if(!b||b.disabled)return;const dk=REDATE||today().k,noEnd=!t2.value,noMemo=!memo.value.trim(),left=waitMin(dk,t1.value);
  const why=[noEnd?'終了時刻が空':'',noMemo?'業務記録が空':'',left>0?'開始から20分まで あと'+left+'分':''].filter(Boolean);
  const h=why.length?'📁 あとで入力（未完成ボックスへ保存）<div style="font-size:14px;font-weight:normal;margin-top:4px">'+why.join('・')+'</div>':(SENT?'✓ Noteに保存済み（直したらもう一度押す）':'💾 Noteに保存 → 文書を書く');
- if(b.innerHTML!==h)b.innerHTML=h;const nt=document.getElementById('savenote');if(nt&&!SAVED)nt.textContent=why.length?'押すと未完成ボックスに保存して、そのまま文書（口腔衛生管理）が開きます。そろったらNoteに保存できます':'押すと用紙の画像がNoteに入り、そのまま文書（口腔衛生管理）が開きます';b.style.background=why.length?'#E8590C':SENT?'#2F9E44':'#1971C2'}
-{const _np=newPatient;newPatient=function(no){const r=_np(no);updSaveBtn();return r}}
+ if(b.innerHTML!==h)b.innerHTML=h;boxErr(noEnd,noMemo,left);const nt=document.getElementById('savenote');if(nt&&!SAVED)nt.textContent=why.length?'押すと未完成ボックスに保存して、そのまま文書（口腔衛生管理）が開きます。そろったらNoteに保存できます':'押すと用紙の画像がNoteに入り、そのまま文書（口腔衛生管理）が開きます';b.style.background=why.length?'#E8590C':SENT?'#2F9E44':'#1971C2'}
+{const _np=newPatient;newPatient=function(no){FROMBOX=false;const r=_np(no);updSaveBtn();return r}}
 setInterval(updSaveBtn,2000);['t1','t2','memo'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',updSaveBtn);e.addEventListener('change',updSaveBtn)}});
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-11:55</div></body></html>
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-12:00</div></body></html>
