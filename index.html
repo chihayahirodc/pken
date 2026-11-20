@@ -978,4 +978,19 @@ function showPre(w){let z=document.getElementById('prez');if(!z){z=document.crea
  w.map(([a,b,f])=>'<button onclick="'+f+'" style="display:flex;width:100%;align-items:center;gap:12px;text-align:left;padding:12px 14px;margin-bottom:8px;border-radius:12px;border:2px solid #FFC9C9;background:#FFF5F5;color:#1E2A44;font-size:17px"><b style="min-width:110px;color:#C92A2A">'+a+'</b><span style="flex:1">'+b+'</span><span style="color:#C92A2A;font-weight:700">入れる ▶</span></button>').join('')+
  '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:12px"><button onclick="document.getElementById(\'prez\').remove()" style="flex:1;height:56px;font-size:18px;border-radius:12px;border:1px solid #ccd;background:#fff;font-weight:700">← 戻って入れる</button><button onclick="document.getElementById(\'prez\').remove();PREOK=true;saveRec()" style="flex:1;height:56px;font-size:18px;border-radius:12px;border:none;background:#868E96;color:#fff;font-weight:700">このまま保存</button></div></div>'}
 {const _sr=saveRec;saveRec=function(){if(!PREOK&&!SENT){const w=preCheck();if(w.length){showPre(w);return}}PREOK=false;return _sr.apply(this,arguments)}}
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/20-10:25</div></body></html>
+// ===== 同じ画像を何度もNoteへ送らない 11/20 =====
+function hsh(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)+':'+s.length}
+function sentMap(){try{return JSON.parse(localStorage.getItem('pkenSentH')||'{}')}catch(e){return {}}}
+function sentPut(k,v){try{const m=sentMap();m[k]=v;const ks=Object.keys(m);if(ks.length>200)ks.slice(0,ks.length-200).forEach(x=>delete m[x]);localStorage.setItem('pkenSentH',JSON.stringify(m))}catch(e){}}
+const INFLIGHT={};
+{const _api=api;api=function(action,data){
+ if(action==='saveNote'&&data&&data.b64){const k='D|'+data.no+'|'+(REDATE||today().k),h=hsh(data.b64);
+  if(sentMap()[k]===h)return Promise.resolve('same');if(INFLIGHT[k+h])return INFLIGHT[k+h];
+  return INFLIGHT[k+h]=_api(action,data).then(r=>{sentPut(k,h);DSENT=data.no+':'+data.b64.length+':'+data.b64.slice(-200);return r}).finally(()=>{delete INFLIGHT[k+h]})}
+ if(action==='saveExam'&&data&&data.b64&&!data.wait){let j={};try{j=JSON.parse(data.json||'{}')}catch(e){}if(j.ui)delete j.ui.doc;
+  const k='P|'+data.no+'|'+data.date,h=hsh(JSON.stringify([j,data.t1,data.t2,data.kind,data.memo,data.tools,data.instr,data.rec,data.tanto]));
+  if(sentMap()[k]===h)data=Object.assign({},data,{b64:''});
+  return _api(action,data).then(r=>{sentPut(k,h);return r})}
+ return _api(action,data)}}
+let FIXDW=0;setInterval(()=>{if(FIXROW&&SAVED===FIXROW&&FIXDW!==FIXROW){FIXDW=FIXROW;DOCWAIT=false}},300);
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/20-12:30</div></body></html>
