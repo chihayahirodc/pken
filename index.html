@@ -942,4 +942,22 @@ window.addEventListener('resize',ptFit);
 (function(){const a=REC.add.bind(REC);REC.add=function(x){if(!this.has(x)&&this.size>=3){try{toast('おすすめは3つまでです')}catch(e){}return this}return a(x)}})();
 (function(){const b=document.getElementById('savebtn');if(b&&!document.getElementById('ptbtn')){const x=document.createElement('button');x.id='ptbtn';x.onclick=openPt;x.textContent='🖨 患者さん用の紙（検査結果）';x.style.cssText='height:52px;font-size:17px;margin-top:10px;width:100%;border:2px solid #5FA51E;background:#F1F8E8;color:#427F01;border-radius:12px;font-weight:700';const nx=b.nextElementSibling;(nx&&nx.tagName!=='BUTTON'?nx:b).after(x)}})();
 const drawDoc_pt=drawDoc;drawDoc=function(){const r=drawDoc_pt.apply(this,arguments);const sd=document.getElementById('dside');if(sd&&!document.getElementById('dpt')){const x=document.createElement('button');x.id='dpt';x.onclick=openPt;x.textContent='🖨 患者さん用の紙';x.style.cssText='height:56px;font-size:18px;background:#F1F8E8;color:#427F01;border:2px solid #5FA51E;font-weight:700';const ds=document.getElementById('dsave');(ds||sd.firstChild).after(x)}return r};
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/19-15:20</div></body></html>
+// ===== 保存済みを直して上書き 11/20 =====
+let DONE=null,FIXROW=0;
+function loadDone(){return api('listDone',{days:14}).then(r=>{DONE=r||[];return DONE}).catch(e=>{DONE=DONE||[];throw e})}
+{const _dt=drawTodo;drawTodo=function(){_dt();const l=document.getElementById('tdl');if(!l)return;
+ const rows=(DONE||[]).filter(x=>(x.tanto||'')===TDSEL);
+ const d=document.createElement('div');d.style.cssText='margin-top:14px;padding-top:12px;border-top:2px dashed #d5dbe5';
+ d.innerHTML='<div style="font-size:18px;font-weight:700;color:#2B8A3E;margin-bottom:4px">✓ 保存済み（14日分）</div><div style="font-size:14px;color:#667;margin-bottom:8px">直したいときはタップ → 直して「上書き保存」。シートは上書きされ、Noteには直した版がもう1枚入ります。</div>'+
+  (DONE===null?'<div style="padding:12px;color:#667">読み込み中…</div>':!rows.length?'<div style="padding:12px;color:#99a">ありません</div>':rows.map(x=>{if(!(x.no in NMC)){NMC[x.no]='';api('getName',{no:x.no}).then(n=>{NMC[x.no]=n||'';drawTodo()}).catch(()=>{})}
+   return '<button onclick="openFix('+x.row+')" style="display:flex;width:100%;align-items:center;gap:14px;text-align:left;padding:12px 16px;margin-bottom:8px;border-radius:12px;border:1px solid #B2F2BB;background:#F4FCF5;color:#1E2A44;font-size:17px"><b style="min-width:150px">'+fmtD(x.date)+' '+esc(x.t1)+'</b><span style="min-width:200px">カルテ '+esc(x.no)+(NMC[x.no]?'　'+esc(NMC[x.no])+' 様':'')+'</span><span style="flex:1;color:#667;font-size:15px">'+esc(x.tanto||'担当なし')+'・'+esc(x.kind)+'</span><span style="background:#2F9E44;color:#fff;border-radius:8px;padding:4px 12px;font-size:15px;font-weight:700">✏️ 直す</span></button>'}).join(''));
+ l.appendChild(d)}}
+{const _ot=openTodo;openTodo=function(){_ot();loadDone().then(drawTodo).catch(()=>{const l=document.getElementById('tdl');if(l&&DONE&&!DONE.length)drawTodo()})}}
+function openFix(row){FIXROW=row;openTodoRow(row)}
+{const _np=newPatient;newPatient=function(){if(!NOPREV)FIXROW=0;return _np.apply(this,arguments)}}
+function fixLabel(){const b=document.getElementById('savebtn');if(!b||!FIXROW||SAVED!==FIXROW)return;
+ const n=document.getElementById('savenote');if(n)n.textContent='保存済みの検査を直しています（'+fmtD(REDATE||'')+'）。直したら「上書き保存」を押してください';
+ const h=document.getElementById('heard');if(h&&/未完成ボックスから開きました/.test(h.textContent))h.innerHTML='<i>保存済みの検査を開きました（直して上書き保存）</i>';
+ if(!SENT&&/Noteに保存/.test(b.textContent)&&!/済み/.test(b.textContent))b.textContent='💾 上書き保存（Noteに直した版を送る）→ 文書'}
+{const _us=updSaveBtn;updSaveBtn=function(){_us();fixLabel()}}setInterval(fixLabel,500);
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/20-10:10</div></body></html>
