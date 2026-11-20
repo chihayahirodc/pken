@@ -960,4 +960,22 @@ function fixLabel(){const b=document.getElementById('savebtn');if(!b||!FIXROW||S
  const h=document.getElementById('heard');if(h&&/未完成ボックスから開きました/.test(h.textContent))h.innerHTML='<i>保存済みの検査を開きました（直して上書き保存）</i>';
  if(!SENT&&/Noteに保存/.test(b.textContent)&&!/済み/.test(b.textContent))b.textContent='💾 上書き保存（Noteに直した版を送る）→ 文書'}
 {const _us=updSaveBtn;updSaveBtn=function(){_us();fixLabel()}}setInterval(fixLabel,500);
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/20-10:10</div></body></html>
+// ===== 保存前の未記入チェック 11/20 =====
+let PREOK=false;
+function preCheck(){const w=[];const pres=[];['U','L'].forEach(a=>teethRow(a).forEach(([q,t])=>{if(!miss.has(q+t))pres.push(q+t)}));
+ const pq=pres.filter(id=>Object.values(plq[id]||{}).some(Boolean)).length;
+ if(!pq)w.push(['プラーク','1本も入っていません（PCRが0%になります）','openPq()']);
+ if(!mode){const np=SEQ.filter(p=>!p.mob&&!miss.has(tid(p))&&pd[key(p)]==null&&!NA.has(key(p))).length;if(np)w.push(['ポケット','測っていない所が '+np+' か所あります','preGo(\'pd\')']);
+  const nm=SEQ.filter(p=>p.mob&&!miss.has(tid(p))&&mob[tid(p)]==null).length;if(nm)w.push(['動揺度','入っていない歯が '+nm+' 本あります','preGo(\'mob\')'])}
+ if(!Object.keys(T3).length)w.push(['清掃用具','1つも選んでいません','preGo(\'tools\')']);
+ if(!T4.size)w.push(['使用器具','1つも選んでいません','preGo(\'tools\')']);
+ return w}
+function preGo(k){const z=document.getElementById('prez');if(z)z.remove();
+ if(k==='pd'||k==='mob'){const i=SEQ.findIndex(p=>(k==='mob'?p.mob&&mob[tid(p)]==null:!p.mob&&pd[key(p)]==null&&!NA.has(key(p)))&&!miss.has(tid(p)));if(i>=0){cur=i;try{draw()}catch(e){}}window.scrollTo({top:0,behavior:'smooth'});return}
+ const e=k==='t2'?t2:k==='memo'?memo:(typeof c3!=='undefined'?c3:memo);e.scrollIntoView({block:'center',behavior:'smooth'});if(k==='t2'||k==='memo'){e.style.outline='3px solid #E03131'}}
+function showPre(w){let z=document.getElementById('prez');if(!z){z=document.createElement('div');z.id='prez';z.style.cssText='position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:120;display:flex;align-items:center;justify-content:center';document.body.appendChild(z)}
+ z.innerHTML='<div style="background:#fff;border-radius:16px;padding:22px 24px;width:640px;max-width:94vw"><div style="font-size:22px;font-weight:700;color:#C92A2A;margin-bottom:6px">⚠ まだ入っていない所があります</div><div style="font-size:14px;color:#667;margin-bottom:12px">押すとその場所へ戻ります。わざと空けているなら「このまま保存」。</div>'+
+ w.map(([a,b,f])=>'<button onclick="'+f+'" style="display:flex;width:100%;align-items:center;gap:12px;text-align:left;padding:12px 14px;margin-bottom:8px;border-radius:12px;border:2px solid #FFC9C9;background:#FFF5F5;color:#1E2A44;font-size:17px"><b style="min-width:110px;color:#C92A2A">'+a+'</b><span style="flex:1">'+b+'</span><span style="color:#C92A2A;font-weight:700">入れる ▶</span></button>').join('')+
+ '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:12px"><button onclick="document.getElementById(\'prez\').remove()" style="flex:1;height:56px;font-size:18px;border-radius:12px;border:1px solid #ccd;background:#fff;font-weight:700">← 戻って入れる</button><button onclick="document.getElementById(\'prez\').remove();PREOK=true;saveRec()" style="flex:1;height:56px;font-size:18px;border-radius:12px;border:none;background:#868E96;color:#fff;font-weight:700">このまま保存</button></div></div>'}
+{const _sr=saveRec;saveRec=function(){if(!PREOK&&!SENT){const w=preCheck();if(w.length){showPre(w);return}}PREOK=false;return _sr.apply(this,arguments)}}
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/20-10:25</div></body></html>
