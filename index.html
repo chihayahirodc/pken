@@ -501,7 +501,13 @@ function mic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition
    else if(r.isFinal&&RDONE[i]>0){/* 数字で始まり途中で言葉が入った：入れた分は残し、言葉はそのまま読む */hear(t.replace(/^[\s0-9０-９〇一二三四五六七八九]+/,''))}
  }};
  rec.onstart=()=>{RDONE={};RAPP={};RSNAP={};RMOB={};if(HOLD){clearTimeout(HOLD.tm);HOLD=null}};
- rec.onerror=e=>{if(e.error==='aborted'||e.error==='no-speech')return;const m={'not-allowed':'マイクが許可されていません。アドレス欄の左の「ぁあ」→「Webサイトの設定」→マイクを「許可」にしてください','service-not-allowed':'この画面では上の青いボタンのマイクが使えません。下の入力欄をタップして、キーボードの🎤で話してください','no-speech':'声が聞こえませんでした','audio-capture':'マイクが見つかりません','network':'ネットにつながっていません'}[e.error]||('エラー：'+e.error);document.getElementById('heard').innerHTML='<i>'+m+'</i>';LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:'（'+e.error+'）',msg:m});drawLog();if(e.error==='not-allowed'||e.error==='service-not-allowed'){try{tx.focus()}catch(x){};on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）'}};rec.onend=()=>{if(on){try{rec.start()}catch(x){}}};rec.start();on=true;b.classList.add('on');b.textContent='● 聞いています（押すと止まる）'}
+ rec.onerror=e=>{if(e.error==='aborted'||e.error==='no-speech')return;const m={'not-allowed':'マイクが許可されていません。アドレス欄の左の「ぁあ」→「Webサイトの設定」→マイクを「許可」にしてください','service-not-allowed':'この画面では上の青いボタンのマイクが使えません。下の入力欄をタップして、キーボードの🎤で話してください','no-speech':'声が聞こえませんでした','audio-capture':'マイクが見つかりません','network':'ネットにつながっていません'}[e.error]||('エラー：'+e.error);document.getElementById('heard').innerHTML='<i>'+m+'</i>';LOG.push({t:new Date().toLocaleTimeString('ja-JP'),raw:'（'+e.error+'）',msg:m});drawLog();if(e.error==='not-allowed'||e.error==='service-not-allowed'){try{tx.focus()}catch(x){};on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）'}};rec.onend=()=>{
+  if(!on)return;
+  try{rec.start()}catch(x){
+   on=false;b.classList.remove('on');b.textContent='🎤 声で入力（押してから話す）';
+   document.getElementById('heard').innerHTML='<i style="color:#c00">マイクが止まりました。もう一度押してください</i>';
+  }
+ };rec.start();on=true;b.classList.add('on');b.textContent='● 聞いています（押すと止まる）'}
 // 見本の途中の状態
 document.getElementById('dt').textContent='2026/11/13（金）';
 document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const g=c.parentElement;if(g.hasAttribute('data-one'))g.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.toggle('on')});
@@ -575,7 +581,7 @@ const LOG=[];let sent=0;
 function drawLog(){lgn.textContent='記録 '+LOG.length+'件'+(sent?'（送った '+sent+'件）':'');lgv.innerHTML=LOG.slice().reverse().map(l=>'<div style="border-bottom:1px solid #eee;padding:3px 0"><small style="color:#889">'+l.t+'</small> 「'+l.raw.replace(/</g,'&lt;')+'」<br>→ '+l.msg+'</div>').join('')||'まだありません'}
 function sendLog(){const rows=LOG.slice(sent);if(!rows.length){lgs.textContent='送るものなし';setTimeout(()=>lgs.textContent='記録を送る',1500);return}
  lgs.textContent='送っています…';api('saveVoiceLog',{rows:rows.map((l,j)=>[l.t,l.raw,(j?'':'['+document.getElementById('ver').textContent+'] ')+l.msg])}).then(r=>{sent+=rows.length;lgs.textContent='送りました ✓';drawLog();setTimeout(()=>lgs.textContent='記録を送る',2000)}).catch(e=>{lgs.textContent='送れませんでした（'+e.message+'）'})}
-function chkVer(){fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(h=>{const m=h.match(/版 [0-9][0-9\/:\-]+/),v=document.getElementById('ver');if(!m||!v||m[0]===v.textContent)return;if(!Object.keys(pd).length&&!on){location.replace(location.pathname+'?v='+Date.now());return}v.textContent='新しい版があります（タップで更新）';v.style.cssText+=';background:#FDE68A;color:#000;font-size:14px;padding:4px 10px;cursor:pointer';v.onclick=()=>{if(confirm('いま入れた数字は消えます。新しい版にしますか？'))location.replace(location.pathname+'?v='+Date.now())}}).catch(()=>{})} // 古い版のまま使わないように
+function chkVer(){fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(h=>{const m=h.match(/版 [0-9][0-9\/:\-]+/),v=document.getElementById('ver');if(!m||!v||m[0]===v.textContent)return;if(!hasUnsavedInput()&&!on){location.replace(location.pathname+'?v='+Date.now());return}v.textContent='新しい版があります（タップで更新）';v.style.cssText+=';background:#FDE68A;color:#000;font-size:14px;padding:4px 10px;cursor:pointer';v.onclick=()=>{if(confirm('いま入れた数字は消えます。新しい版にしますか？'))location.replace(location.pathname+'?v='+Date.now())}}).catch(()=>{})} // 古い版のまま使わないように
 setTimeout(chkVer,1500);setInterval(chkVer,180000);
 // 保存先（院長のSheet）とのやりとり。合言葉はこのiPadにだけ覚える
 const GAS='https://script.google.com/macros/s/AKfycbx47lC3X8VkaV7svIP-rkKSO-Uir09OIJE6Yr_pF2VRgz_Ua0lA2rSS578ARMwDMJsq/exec';
@@ -702,40 +708,60 @@ function knk(n){const o=document.getElementById('knz');let v=o.dataset.v||'';if(
 let KNT=null,NMC={};function knName(v){const e=document.getElementById('knm');if(!e)return;clearTimeout(KNT);if(!v){e.textContent='';return}if(v in NMC){e.innerHTML=NMC[v]?String(NMC[v]).replace(/</g,'&lt;')+' 様':'<span style="color:#c00;font-size:17px">名簿にない番号です</span>';return}e.innerHTML='<span style="color:#889;font-size:16px">名前を確認中…</span>';KNT=setTimeout(()=>api('getName',{no:v}).then(n=>{NMC[v]=n||'';const o=document.getElementById('knz');if(o&&o.dataset.v===v)knName(v);showPn()}).catch(()=>{if(document.getElementById('knm'))document.getElementById('knm').textContent=''}),450)}
 function showPn(){const no=document.getElementById('kno').textContent.trim();let e=document.getElementById('pnm');if(!e){e=document.createElement('b');e.id='pnm';e.style.cssText='margin-left:8px;font-size:17px';document.getElementById('kno').after(e)}e.textContent=NMC[no]?NMC[no]+' 様':''}
 function knOK(){const v=document.getElementById('knz').dataset.v||'';if(!v)return;document.getElementById('knz').remove();newPatient(v);openStaff()}
+let examSession=0,savedInput;
+function examInput(){
+ const exam=JSON.parse(recJSON()),doc=exam.ui.doc;
+ // 自動で付く文書のチェックと送信待機は、手入力の変更に含めない
+ doc.sel=doc.sel.filter(k=>DTOUCH.has(k));
+ delete doc.wait;
+ return JSON.stringify([exam,t1.value,t2.value,memo.value]);
+}
+function hasUnsavedInput(){
+ return examInput()!==savedInput||!!tx.value.slice(txDone)||!!document.getElementById('knz')?.dataset.v;
+}
 function newPatient(no){
+ ++examSession;
+ REDATE=null;DOCWAIT=false;FROMBOX=false;
  try{if(on)mic()}catch(e){}
  clr(pd);clr(bl);clr(plq);clr(mob);clr(pu);NA.clear();clr(TS);miss.clear();['UR8','UL8','LL8','LR8'].forEach(x=>miss.add(x));
  cur=skip(0);last=-1;pause=null;EDIT=null;try{TAPM=null;TAUTO=false;BH=[];lastT=null;lastN=null;lastQ=null;PEND=null}catch(e){}
  clr(T3);T4.clear();document.querySelectorAll('.row .card .chip.on').forEach(c=>c.classList.remove('on'));
  memo.value='';REC.clear();EXTRA.length=0;prevUse={};
  DSEL.clear();DSEL.add('ブラッシングおよびプラーク除去');DTOUCH.clear();Object.keys(DTX).forEach(k=>DTX[k]='');DFREE='';DSENT='';
+ const free=document.getElementById('dfree');if(free)free.value='';
  clr(PPD);clr(PBL);clr(PPLQ);HIST.length=0;PREV.pcr=PREV.bop=PREV.p4=null;PREV.date='';PREVREC.length=0;
  SAVED=null;SENT=false;t2.style.background='';t2.style.outline='';const sb=document.getElementById('savebtn');sb.textContent='💾 保存して Note へ → 文書を書く';sb.style.background='';sb.disabled=false;
  document.getElementById('savenote').textContent='押すと検査タブに残り、用紙の画像がNoteに入って、そのまま文書（口腔衛生管理）が開きます';document.getElementById('docgo').style.display='none';
  document.getElementById('kno').textContent=no;showKno();if(!(no in NMC))api('getName',{no}).then(n=>{NMC[no]=n||'';showPn()}).catch(()=>{});showPn();document.getElementById('dt').textContent=today().s;t1.value=hm();t2.value='';
  document.querySelectorAll('#cmp b')[0].textContent='前回との比較　カルテ番号 '+no;
- setMode(0);drawTools();drawRec();draw();try{drawDoc()}catch(e){}window.scrollTo(0,0);loadPrev(no)}
-function loadPrev(no){const h=document.getElementById('heard');if(h)h.innerHTML='<i>前回の検査を読み込み中…</i>';
- api('getHist',{no}).then(r=>{if(document.getElementById('kno').textContent!==no)return;
+ setMode(0);drawTools();drawRec();draw();try{drawDoc()}catch(e){}window.scrollTo(0,0);savedInput=examInput();loadPrev(no)}
+function loadPrev(no){const h=document.getElementById('heard'),session=examSession,startCur=cur,startInput=savedInput;if(h)h.innerHTML='<i>前回の検査を読み込み中…</i>';
+ api('getHist',{no}).then(r=>{if(session!==examSession)return;
   if(!r||!r.hist||!r.hist.length){if(h)h.innerHTML='<i>前回の検査はありません（はじめて）</i>';draw();return}
   r.hist.forEach(x=>HIST.push([x[0],+x[1]||0,+x[2]||0,+x[3]||0]));const L=r.hist[r.hist.length-1];PREV.pcr=+L[1]||0;PREV.bop=+L[2]||0;PREV.p4=+L[3]||0;PREV.date=L[0];
   let j={};try{j=JSON.parse(r.last.json||'{}')}catch(e){}Object.assign(PPD,j.pd||{});Object.assign(PBL,j.bl||{});Object.assign(PPLQ,j.plq||{});
-  if(j.miss){miss.clear();j.miss.forEach(x=>miss.add(x))}if(j.TS)Object.assign(TS,j.TS);cur=skip(0);
+  const started=cur!==startCur||last!==-1||pause!==null||savedInput!==startInput||hasUnsavedInput();
+  if(!started){
+   if(j.miss){miss.clear();j.miss.forEach(x=>miss.add(x))}
+   if(j.TS)Object.assign(TS,j.TS);cur=skip(0);
+   savedInput=examInput();
+  }
   (r.last.rec||'').split('、').map(s=>s.trim()).filter(Boolean).forEach(x=>PREVREC.push(x));
-  if(h)h.innerHTML='<i>前回 '+L[0]+' の検査を読み込みました（歯の登録も前回のまま）</i>';drawRec();draw();drawSlash()
- }).catch(e=>{if(h)h.innerHTML='<i style="color:#c00">前回を読み込めませんでした（'+e.message+'）</i>'})}
+  if(h&&(!started||h.textContent==='前回の検査を読み込み中…'))h.innerHTML='<i>前回 '+L[0]+' の検査を読み込みました'+(started?'':'（歯の登録も前回のまま）')+'</i>';drawRec();draw();drawSlash()
+ }).catch(e=>{if(h&&session===examSession)h.innerHTML='<i style="color:#c00">前回を読み込めませんでした（'+e.message+'）</i>'})}
 function recJSON(){return JSON.stringify({v:1,mode,pd,bl,pu,plq,mob,miss:[...miss],NA:[...NA],TS,ui:{T3,T4:[...T4],REC:[...REC],doc:{sel:[...DSEL],touch:[...DTOUCH],tx:DTX,free:(document.getElementById('dfree')||{}).value??DFREE,wait:DOCWAIT}}})}
 function loadH2C(){return window.html2canvas?Promise.resolve():new Promise((ok,ng)=>{const s=document.createElement('script');s.src='lib/html2canvas.min.js?v=141';s.onload=ok;s.onerror=()=>ng(new Error('画像の部品を読み込めません'));document.head.appendChild(s)})}
 function saveRec(){const b=document.getElementById('savebtn'),g=document.getElementById('docgo'),nt=document.getElementById('savenote');
  const no=document.getElementById('kno').textContent.trim();if(!/^\d+$/.test(no)){alert('カルテ番号を入れてください（上の赤い欄をタップ）');openKno();return}
  if(!lsg('pkenTanto')){alert('担当を選んでください');openStaff();return}
  if(SAVED&&SENT&&!confirm('もう一度保存しますか？（検査タブは上書き、Noteにはもう1枚入ります）'))return;
+ const session=examSession;let input;
  const noEnd=!t2.value,noMemo=!memo.value.trim(),left=waitMin(REDATE||today().k,t1.value),inc=noEnd||noMemo||left>0;t2.style.background=noEnd?'#FFE3E3':'';t2.style.outline=noEnd?'3px solid #E03131':'';memo.style.outline=noMemo?'3px solid #E03131':'';b.disabled=true;b.textContent='保存しています…';
  showRec();try{document.getElementById('dov').style.background='#2B3445';openDoc()}catch(e){}const st=(id)=>document.getElementById(id).textContent;
  loadH2C().then(()=>new Promise(r=>setTimeout(r,300))).then(()=>html2canvas(document.getElementById('sheet'),{scale:2,backgroundColor:'#fff',useCORS:true})).then(cv=>{
   const W=1680,H=2382,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);const sc=Math.min((W-80)/cv.width,(H-80)/cv.height);x.drawImage(cv,40,40,cv.width*sc,cv.height*sc);const b64=inc?'':c.toDataURL('image/png').split(',')[1];
-  return api('saveExam',examP(inc,b64))
- }).then(r=>{SAVED=r;if(!inc){SENT=true;if(DOCWAIT)sendWaitDoc()}try{loadTodo().catch(()=>{})}catch(e){}rv.style.display='none';b.disabled=false;if(inc){const w=[noEnd?'終了時刻':'',noMemo?'業務記録':''].filter(Boolean).join('・');b.textContent=w?'📁 未完成ボックスに保存（'+w+'が空）→ 入れてもう一度押すとNoteへ':'📁 未完成ボックスに保存（開始から20分たっていません・あと'+left+'分）';b.style.background='#E8590C';nt.textContent=(w?w+'を入れて':'20分たってから')+'押すとNoteに入ります。あとでなら、最初の画面の「未完成ボックス」から開けます';}else{b.textContent='✓ 保存しました（Note（サブカルテ）へ）';b.style.background='#2F9E44';nt.textContent='保存しました（直したらもう一度押せます）';}g.style.display='block';g.textContent='📄 文書（口腔衛生管理）をもう一度開く';updSaveBtn();toast(inc?'📁 未完成ボックスに保存しました':'✓ 検査をNoteに保存しました')})
+  input=examInput();return api('saveExam',examP(inc,b64))
+ }).then(r=>{if(session===examSession)savedInput=input;SAVED=r;if(!inc){SENT=true;if(DOCWAIT)sendWaitDoc()}try{loadTodo().catch(()=>{})}catch(e){}rv.style.display='none';b.disabled=false;if(inc){const w=[noEnd?'終了時刻':'',noMemo?'業務記録':''].filter(Boolean).join('・');b.textContent=w?'📁 未完成ボックスに保存（'+w+'が空）→ 入れてもう一度押すとNoteへ':'📁 未完成ボックスに保存（開始から20分たっていません・あと'+left+'分）';b.style.background='#E8590C';nt.textContent=(w?w+'を入れて':'20分たってから')+'押すとNoteに入ります。あとでなら、最初の画面の「未完成ボックス」から開けます';}else{b.textContent='✓ 保存しました（Note（サブカルテ）へ）';b.style.background='#2F9E44';nt.textContent='保存しました（直したらもう一度押せます）';}g.style.display='block';g.textContent='📄 文書（口腔衛生管理）をもう一度開く';updSaveBtn();toast(inc?'📁 未完成ボックスに保存しました':'✓ 検査をNoteに保存しました')})
  .catch(e=>{b.disabled=false;rv.style.display='none';try{updSaveBtn()}catch(x){}alert('保存できませんでした：'+e.message)})}
 (function(){const k=document.getElementById('kno');k.textContent='（タップ）';k.parentElement.style.cursor='pointer';k.parentElement.onclick=openKno;showKno();document.getElementById('dt').textContent=today().s;t1.value='';t2.value='';
  // 前回が無いときは「前回」欄を出さない
@@ -752,7 +778,6 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;',
 // 未完成ホルダ：衛生士別に「終了時刻なし」「業務記録なし」を一覧し、あとで開いて直す
 function waitMin(dk,t){const p=String(dk).split('/'),q=String(t||'').split(':');if(p.length<3||q.length<2)return 0;const st=new Date(+p[0],+p[1]-1,+p[2],+q[0],+q[1]);return Math.max(0,Math.ceil((st.getTime()+20*60000-Date.now())/60000))}
 let REDATE=null,NOPREV=false,TODO=null,TDSEL=null;
-{const _np=newPatient;newPatient=function(no){REDATE=null;return _np(no)}}
 {const _lp=loadPrev;loadPrev=function(no){if(NOPREV){NOPREV=false;return}return _lp(no)}}
 function tdCount(){const n=lsg('pkenTanto');return (TODO||[]).filter(x=>!n||x.tanto===n).length}
 function loadTodo(){return api('listTodo',{}).then(l=>{TODO=l||[];tdBtn();return TODO})}
@@ -784,7 +809,7 @@ function openTodoRow(row){if(hasData()&&!SAVED&&!confirm('いま入れている�
   SAVED=r.row;SENT=false;FROMBOX=true;updSaveBtn();
   document.getElementById('savenote').textContent='未完成ボックスから開いた検査です（'+fmtD(r.date)+'）。終了時刻・業務記録を入れて保存してください';
   const h=document.getElementById('heard');if(h)h.innerHTML='<i>未完成ボックスから開きました：'+fmtD(r.date)+' '+esc(r.t1)+'</i>';
-  cur=skip(0);drawTools();drawRec();draw();try{drawSlash()}catch(e){}try{drawDoc()}catch(e){}
+  cur=skip(0);drawTools();drawRec();draw();try{drawSlash()}catch(e){}try{drawDoc()}catch(e){}savedInput=examInput();
   const o=document.getElementById('tdz');if(o)o.remove();if(!r.t2)setTimeout(()=>{t2.scrollIntoView({block:'center'});t2.style.background='#FFE3E3';t2.style.outline='3px solid #E03131'},200)
  }).catch(e=>{alert('開けませんでした（'+e.message+'）');drawTodo()})}
 let FROMBOX=false;
@@ -799,7 +824,7 @@ function updSaveBtn(){const b=document.getElementById('savebtn');if(!b||b.disabl
  const why=[noEnd?'終了時刻が空':'',noMemo?'業務記録が空':'',left>0?'開始から20分まで あと'+left+'分':''].filter(Boolean);
  const h=why.length?'📁 あとで入力（未完成ボックスへ保存）<div style="font-size:14px;font-weight:normal;margin-top:4px">'+why.join('・')+'</div>':(SENT?'✓ Noteに保存済み（直したらもう一度押す）':'💾 Noteに保存 → 文書を書く');
  if(b.innerHTML!==h)b.innerHTML=h;boxErr(noEnd,noMemo,left);const nt=document.getElementById('savenote');if(nt&&!SAVED)nt.textContent=why.length?'押すと未完成ボックスに保存して、そのまま文書（口腔衛生管理）が開きます。そろったらNoteに保存できます':'押すと用紙の画像がNoteに入り、そのまま文書（口腔衛生管理）が開きます';b.style.background=why.length?'#E8590C':SENT?'#2F9E44':'#1971C2'}
-{const _np=newPatient;newPatient=function(no){FROMBOX=false;DOCWAIT=false;SAVEP=null;const r=_np(no);updSaveBtn();return r}}
+{const _np=newPatient;newPatient=function(no){SAVEP=null;const r=_np(no);updSaveBtn();return r}}
 setInterval(updSaveBtn,2000);['t1','t2','memo'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',updSaveBtn);e.addEventListener('change',updSaveBtn)}});
 function goMemo(){const m=document.getElementById('memo');if(document.getElementById('gomemo').textContent.startsWith('▲')){window.scrollTo({top:0,behavior:'smooth'})}else{m.closest('.card')?m.closest('.card').scrollIntoView({behavior:'smooth',block:'start'}):m.scrollIntoView({behavior:'smooth',block:'center'})}}
 window.addEventListener('scroll',()=>{const b=document.getElementById('gomemo');if(!b)return;const r=document.getElementById('memo').getBoundingClientRect();const t=(r.top<innerHeight&&window.scrollY>200)?'▲ 検査の表へ':'📝 業務記録';if(b.textContent!==t)b.textContent=t},{passive:true});
@@ -840,7 +865,7 @@ saveDoc=function(){const b=document.getElementById('dsave');const no=(document.g
  (SAVEP||Promise.resolve()).then(()=>{
   if(SENT){return docPNG().then(b64=>{const h=no+':'+b64.length+':'+b64.slice(-200);if(h===DSENT)return 'same';return api('saveNote',{no,b64}).then(()=>{DSENT=h;DOCWAIT=false;return 'note'})})}
   if(!SAVED)throw new Error('先に検査を保存してください（業務記録の下の保存ボタン）');
-  DOCWAIT=true;return api('saveExam',examP(true,'')).then(r=>{SAVED=r;try{loadTodo().catch(()=>{})}catch(e){}return 'wait'})
+  DOCWAIT=true;const session=examSession,input=examInput();return api('saveExam',examP(true,'')).then(r=>{if(session===examSession)savedInput=input;SAVED=r;try{loadTodo().catch(()=>{})}catch(e){}return 'wait'})
  }).then(r=>{b.disabled=false;if(r==='wait'){b.textContent='⏳ 保存待機中（検査がそろったらNoteへ）';b.style.background='#E8590C';toast('📁 実地は保存待機中です。検査がそろって保存するとNoteに入ります');setTimeout(goStart,1500)}else{b.textContent=r==='same'?'✓ 保存済み（変更なし）':'✓ Noteに保存しました';b.style.background='#1E2A44';toast('✓ 実地の用紙をNoteに保存しました');setTimeout(goStart,1200)}})
  .catch(e=>{b.disabled=false;b.textContent='💾 保存（Noteへ）';b.style.background='#2F9E44';alert('保存できませんでした（'+e.message+'）')})};
 {const _od=openDoc;openDoc=function(){_od();const b=document.getElementById('dsave');if(b&&DOCWAIT){b.textContent='⏳ 保存待機中（もう一度押すと上書き）';b.style.background='#E8590C'}}}
@@ -993,4 +1018,5 @@ const INFLIGHT={};
   return _api(action,data).then(r=>{sentPut(k,h);return r})}
  return _api(action,data)}}
 let FIXDW=0;setInterval(()=>{if(FIXROW&&SAVED===FIXROW&&FIXDW!==FIXROW){FIXDW=FIXROW;DOCWAIT=false}},300);
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/20-12:30</div></body></html>
+savedInput=examInput();
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/24-16:25</div></body></html>
