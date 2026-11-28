@@ -279,7 +279,7 @@ let pu={},mode=0;
 function setMode(m){mode=m;document.body.classList.toggle('pq-only',m==1);document.querySelectorAll('#mode span').forEach((e,i)=>e.classList.toggle('on',i==m));draw()}
 function pusLast(){if(last<0||SEQ[last].mob)return;const k=key(SEQ[last]);pu[k]=!pu[k];draw()}
 const key=p=>p.q+p.t+p.surf+p.site;
-const pd={},bl={},miss=new Set(['UR8','UL8','LL8','LR8']),plq={},mob={};
+const pd={},bl={},miss=new Set(),plq={},mob={};
 let cur=0,last=-1,missMode=false,pause=null;
 // 試しの値（見本用）
 const demo='3233234223233243433223233223333';
@@ -723,7 +723,7 @@ function newPatient(no){
  ++examSession;
  REDATE=null;DOCWAIT=false;FROMBOX=false;
  try{if(on)mic()}catch(e){}
- clr(pd);clr(bl);clr(plq);clr(mob);clr(pu);NA.clear();clr(TS);miss.clear();['UR8','UL8','LL8','LR8'].forEach(x=>miss.add(x));
+ clr(pd);clr(bl);clr(plq);clr(mob);clr(pu);NA.clear();clr(TS);miss.clear();
  cur=skip(0);last=-1;pause=null;EDIT=null;try{TAPM=null;TAUTO=false;BH=[];lastT=null;lastN=null;lastQ=null;PEND=null}catch(e){}
  clr(T3);T4.clear();document.querySelectorAll('.row .card .chip.on').forEach(c=>c.classList.remove('on'));
  memo.value='';REC.clear();EXTRA.length=0;prevUse={};
@@ -742,7 +742,7 @@ function loadPrev(no){const h=document.getElementById('heard'),session=examSessi
   let j={};try{j=JSON.parse(r.last.json||'{}')}catch(e){}Object.assign(PPD,j.pd||{});Object.assign(PBL,j.bl||{});Object.assign(PPLQ,j.plq||{});
   const started=cur!==startCur||last!==-1||pause!==null||savedInput!==startInput||hasUnsavedInput();
   if(!started){
-   if(j.miss){miss.clear();j.miss.forEach(x=>miss.add(x))}
+   if(j.miss){miss.clear();j.miss.forEach(x=>miss.add(x));if(miss.size)setTimeout(()=>{try{toast('🦷 前回の欠損を引き継ぎました（違う所は「歯の登録」で直せます）')}catch(e){}},600)}
    if(j.TS)Object.assign(TS,j.TS);cur=skip(0);
    savedInput=examInput();
   }
@@ -1012,11 +1012,24 @@ const INFLIGHT={};
  if(action==='saveNote'&&data&&data.b64){const k='D|'+data.no+'|'+(REDATE||today().k),h=hsh(data.b64);
   if(sentMap()[k]===h)return Promise.resolve('same');if(INFLIGHT[k+h])return INFLIGHT[k+h];
   return INFLIGHT[k+h]=_api(action,data).then(r=>{sentPut(k,h);DSENT=data.no+':'+data.b64.length+':'+data.b64.slice(-200);return r}).finally(()=>{delete INFLIGHT[k+h]})}
- if(action==='saveExam'&&data&&data.b64&&!data.wait){let j={};try{j=JSON.parse(data.json||'{}')}catch(e){}if(j.ui)delete j.ui.doc;
+ if(action==='saveExam'&&data&&data.b64&&!data.wait){let j={};try{j=JSON.parse(data.json||'{}')}catch(e){}if(j.ui&&j.ui.doc){const d=j.ui.doc;j.ui.doc={sel:[...(d.sel||[])].sort(),tx:d.tx,free:d.free}}
   const k='P|'+data.no+'|'+data.date,h=hsh(JSON.stringify([j,data.t1,data.t2,data.kind,data.memo,data.tools,data.instr,data.rec,data.tanto]));
   if(sentMap()[k]===h)data=Object.assign({},data,{b64:''});
   return _api(action,data).then(r=>{sentPut(k,h);return r})}
  return _api(action,data)}}
 let FIXDW=0;setInterval(()=>{if(FIXROW&&SAVED===FIXROW&&FIXDW!==FIXROW){FIXDW=FIXROW;DOCWAIT=false}},300);
 savedInput=examInput();
-</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/24-16:25</div></body></html>
+
+// ===== 業務記録の欄に、衛生士実地（口腔衛生管理）の内容も載せる 11/28 =====
+function jitchiLines(){const nm=k=>{const t=(DTX[k]||'').trim();return k.trim().replace('（///部）','')+(t?'（'+t+'）':'')};const pick=a=>a.filter(k=>DSEL.has(k)).map(nm);
+ const st=pick(DOC.st.concat(DOC.ot)),gd=pick(DOC.gd),a=document.getElementById('dfree'),fr=((a?a.value:DFREE)||'').trim();const L=[];
+ if(st.length)L.push(['お口の状態',st.join('、')]);if(gd.length)L.push(['指導内容',gd.join('、')]);if(fr)L.push(['指導メモ',fr.replace(/^・/,'').replace(/\n+・?/g,'、')]);return L}
+{const _s=showRec;showRec=function(){_s();const w=document.querySelector('#sheet .wk');if(!w)return;const L=jitchiLines();if(!L.length)return;const e=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+ w.insertAdjacentHTML('beforeend','<div class="jt" style="margin-top:6px;border-top:1px dashed #bbb;padding-top:4px"><small>衛生士実地（口腔衛生管理）より</small>'+L.map(([h,t])=>'<div><b style="display:inline-block;min-width:5.5em;color:#333">'+h+'</b>'+e(t)+'</div>').join('')+'</div>')}}
+// 実地を保存するとき、検査がもうNoteに入っていれば、実地の内容を入れた検査の画像も送り直す（同じ内容なら送らない）
+function resendExam(){showRec();return loadH2C().then(()=>new Promise(r=>setTimeout(r,300))).then(()=>html2canvas(document.getElementById('sheet'),{scale:2,backgroundColor:'#fff',useCORS:true})).then(cv=>{
+ const W=1680,H=2382,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);const sc=Math.min((W-80)/cv.width,(H-80)/cv.height);x.drawImage(cv,40,40,cv.width*sc,cv.height*sc);
+ const session=examSession,input=examInput();return api('saveExam',examP(false,c.toDataURL('image/png').split(',')[1])).then(r=>{if(session===examSession)savedInput=input;SAVED=r||SAVED})}).catch(e=>console.log('検査の送り直しができません',e.message)).finally(()=>{rv.style.display='none'})}
+{const _sd=saveDoc;saveDoc=function(){if(!(SENT&&SAVED&&t2.value&&memo.value.trim()))return _sd.apply(this,arguments);const b=document.getElementById('dsave');if(b){b.disabled=true;b.textContent='保存しています…'}const a=document.getElementById('dfree');if(a)DFREE=a.value;
+ (SAVEP||Promise.resolve()).then(resendExam).then(()=>{if(b)b.disabled=false;_sd()})}}
+</script><div id="rot"><div style="font-size:64px">⟲</div>iPadを横向きにしてください<div style="font-size:16px;font-weight:normal;opacity:.8">P検アプリは横向きで使います（入れた数字は消えません）</div></div><div id="ver" style="position:fixed;right:8px;top:4px;z-index:60;font-size:11px;color:#9aa;background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px">版 11/28-14:00</div></body></html>
